@@ -1,0 +1,5 @@
+package access
+
+func EnableController() {
+
+}
