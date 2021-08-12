@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
+	"errors"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -14,7 +14,7 @@ import (
 
 var (
 	v     = validator.New()
-	Trans ut.Translator
+	trans ut.Translator
 )
 
 func validate(data interface{}) error {
@@ -22,25 +22,33 @@ func validate(data interface{}) error {
 	return err
 }
 
-func ValidateId(c *gin.Context) (int, bool) {
-	id, err := strconv.Atoi(c.Param("id"))
+func ValidateId(g Gin) (int, bool) {
+	id, err := strconv.Atoi(g.C.Param("id"))
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
 		return id, false
 	}
 	return id, true
 }
 
-func ValidateJson(c *gin.Context, body interface{}) bool {
-	err := c.ShouldBind(body)
+func ValidateJson(g Gin, body interface{}) bool {
+	err := g.C.ShouldBindJSON(body)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
 		return false
 	}
 
 	err = validate(body)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		errs, ok := err.(validator.ValidationErrors)
+		if ok {
+			if len(errs) > 0 {
+				err := errs[0]
+				g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, errors.New(err.Translate(trans)), "")
+			}
+		} else {
+			g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
+		}
 		return false
 	}
 
@@ -49,7 +57,7 @@ func ValidateJson(c *gin.Context, body interface{}) bool {
 
 func init() {
 	uni := ut.New(zh.New(), zh.New())
-	Trans, _ = uni.GetTranslator("zh")
+	trans, _ = uni.GetTranslator("zh")
 
 	v.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -58,5 +66,5 @@ func init() {
 		}
 		return name
 	})
-	zh_translations.RegisterDefaultTranslations(v, Trans)
+	zh_translations.RegisterDefaultTranslations(v, trans)
 }

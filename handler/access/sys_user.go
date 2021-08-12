@@ -9,14 +9,14 @@ import (
 func GetSysUser(c *gin.Context) {
 	g := handler.Gin{C: c}
 
-	id, ok := handler.ValidateId(c)
+	id, ok := handler.ValidateId(g)
 	if !ok {
 		return
 	}
 
 	user, err := service.GetSysUser(id)
 	if err != nil {
-		g.RespError(err, "")
+		g.Abort(err)
 		return
 	}
 
@@ -31,13 +31,15 @@ type ResetPasswordParam struct {
 }
 
 func ResetPassword(c *gin.Context) {
-	id, ok := handler.ValidateId(c)
+	g := handler.Gin{C: c}
+
+	id, ok := handler.ValidateId(g)
 	if !ok {
 		return
 	}
 
 	body := ResetPasswordParam{}
-	if ok := handler.ValidateJson(c, body); !ok {
+	if ok := handler.ValidateJson(g, &body); !ok {
 		return
 	}
 	body.userId = id

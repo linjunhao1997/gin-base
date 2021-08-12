@@ -84,3 +84,7 @@ func (g *Gin) RespNewError(httpCode, errCode int, err error, msg string) {
 		Ok:   false,
 	})
 }
+
+func (g *Gin) Abort(err error) {
+	g.RespError(err, "")
+}

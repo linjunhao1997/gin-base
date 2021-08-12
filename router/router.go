@@ -1,7 +1,6 @@
 package router
 
 import (
-	"gin-base/midware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,5 +29,4 @@ func AppendController(other ...Controller) {
 }
 
 func init() {
-	V1.Use(midware.ErrHandler())
 }
