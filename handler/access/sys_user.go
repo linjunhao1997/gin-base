@@ -4,10 +4,10 @@ import (
 	"gin-base/handler"
 	service "gin-base/service/access"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func GetSysUser(c *gin.Context) {
+	g := handler.Gin{C: c}
 
 	id, ok := handler.ValidateId(c)
 	if !ok {
@@ -16,13 +16,11 @@ func GetSysUser(c *gin.Context) {
 
 	user, err := service.GetSysUser(id)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		g.RespError(err, "")
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"data": user,
-	})
+	g.RespSuccess(user, "")
 }
 
 type ResetPasswordParam struct {
@@ -43,8 +41,6 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 	body.userId = id
-
-	panic("hehe")
 
 	c.JSON(200, gin.H{
 		"data": "success",

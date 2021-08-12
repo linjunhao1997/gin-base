@@ -14,23 +14,18 @@ import (
 
 var (
 	v     = validator.New()
-	trans ut.Translator
+	Trans ut.Translator
 )
 
-func validate(data interface{}) (bool, string) {
+func validate(data interface{}) error {
 	err := v.Struct(data)
-	errs := err.(validator.ValidationErrors)
-	if len(errs) > 0 {
-		err := errs[0]
-		return false, err.Translate(trans)
-	}
-	return true, ""
+	return err
 }
 
 func ValidateId(c *gin.Context) (int, bool) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, ValidIdError)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return id, false
 	}
 	return id, true
@@ -39,13 +34,13 @@ func ValidateId(c *gin.Context) (int, bool) {
 func ValidateJson(c *gin.Context, body interface{}) bool {
 	err := c.ShouldBind(body)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, NewJsonError(err.Error()))
+		c.AbortWithError(http.StatusBadRequest, err)
 		return false
 	}
 
-	ok, errStr := validate(body)
-	if !ok {
-		c.AbortWithError(http.StatusBadRequest, NewJsonError(errStr))
+	err = validate(body)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
 		return false
 	}
 
@@ -54,7 +49,7 @@ func ValidateJson(c *gin.Context, body interface{}) bool {
 
 func init() {
 	uni := ut.New(zh.New(), zh.New())
-	trans, _ = uni.GetTranslator("zh")
+	Trans, _ = uni.GetTranslator("zh")
 
 	v.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -63,5 +58,5 @@ func init() {
 		}
 		return name
 	})
-	zh_translations.RegisterDefaultTranslations(v, trans)
+	zh_translations.RegisterDefaultTranslations(v, Trans)
 }

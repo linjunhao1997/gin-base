@@ -1,8 +1,11 @@
 package midware
 
 import (
+	"errors"
 	"gin-base/handler"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"net/http"
 )
 
 func ErrHandler() gin.HandlerFunc {
@@ -13,22 +16,23 @@ func ErrHandler() gin.HandlerFunc {
 		c.Next()
 
 		if length := len(c.Errors); length > 0 {
+			g := handler.Gin{C: c}
 			e := c.Errors[length-1]
 			err := e.Err
 			if err != nil {
-				var Err *handler.Error
-				if e, ok := err.(*handler.Error); ok {
-					Err = e
-				} else if e, ok := err.(error); ok {
-					Err = handler.NewError(500, -1, e.Error())
+				errs, ok := err.(validator.ValidationErrors)
+				if ok {
+					if len(errs) > 0 {
+						err := errs[0]
+						g.RespNewError(http.StatusBadRequest, handler.INVALID_PARAMS, errors.New(err.Translate(handler.Trans)), "")
+						return
+					}
 				} else {
-					Err = handler.ServerError
+					g.RespNewError(http.StatusBadRequest, handler.INVALID_PARAMS, err, "")
+					return
 				}
-
-				c.JSON(Err.StatusCode, Err)
-				return
 			}
-		}
 
+		}
 	}
 }
