@@ -1,4 +1,4 @@
-package handler
+package base
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,14 +7,6 @@ import (
 
 type Gin struct {
 	C *gin.Context
-}
-
-type Response struct {
-	Code int         `json:"code"`
-	Msg  string      `json:"message"`
-	Err  string      `json:"error"`
-	Ok   bool        `json:"success"`
-	Data interface{} `json:"data"`
 }
 
 func (g *Gin) RespSuccess(data interface{}, msg string) {
@@ -87,4 +79,13 @@ func (g *Gin) RespNewError(httpCode, errCode int, err error, msg string) {
 
 func (g *Gin) Abort(err error) {
 	g.RespError(err, "")
+}
+
+type Controller struct {
+}
+
+func (controller *Controller) Wrap(f func(g *Gin)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		f(&Gin{C: c})
+	}
 }

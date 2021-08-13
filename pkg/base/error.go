@@ -1,4 +1,4 @@
-package handler
+package base
 
 var MsgFlags = map[int]string{
 	SUCCESS:        "请求成功",

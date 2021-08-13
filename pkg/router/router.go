@@ -19,7 +19,7 @@ var AuthV1 = Root.Group("/auth/v1")
 var AuthV2 = Root.Group("/auth/v2")
 
 type Controller interface {
-	PathConfig()
+	HandlerConfig()
 }
 
 var Controllers = make([]Controller, 0)
@@ -28,5 +28,12 @@ func AppendController(other ...Controller) {
 	Controllers = append(Controllers, other...)
 }
 
+func ConfigHandler() {
+	for _, c := range Controllers {
+		c.HandlerConfig()
+	}
+}
+
 func init() {
+
 }

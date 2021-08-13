@@ -1,15 +1,14 @@
 package handler
 
 import (
-	"gin-base/handler"
+	"gin-base/pkg/base"
 	service "gin-base/service/access"
 	"github.com/gin-gonic/gin"
 )
 
-func GetSysUser(c *gin.Context) {
-	g := handler.Gin{C: c}
+func GetSysUser(g *base.Gin) {
 
-	id, ok := handler.ValidateId(g)
+	id, ok := g.ValidateId()
 	if !ok {
 		return
 	}
@@ -30,21 +29,20 @@ type ResetPasswordParam struct {
 	ConfirmPassword string `json:"confirmPassword" validate:"required"`
 }
 
-func ResetPassword(c *gin.Context) {
-	g := handler.Gin{C: c}
+func ResetPassword(g *base.Gin) {
 
-	id, ok := handler.ValidateId(g)
+	id, ok := g.ValidateId()
 	if !ok {
 		return
 	}
 
 	body := ResetPasswordParam{}
-	if ok := handler.ValidateJson(g, &body); !ok {
+	if ok := g.ValidateJson(&body); !ok {
 		return
 	}
 	body.userId = id
 
-	c.JSON(200, gin.H{
+	g.C.JSON(200, gin.H{
 		"data": "success",
 	})
 

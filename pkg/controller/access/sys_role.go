@@ -1,7 +1,7 @@
 package access
 
 import (
-	"gin-base/router"
+	"gin-base/pkg/router"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,7 +12,7 @@ const (
 type SysRoleController struct {
 }
 
-func (c *SysRoleController) PathConfig() {
+func (c *SysRoleController) HandlerConfig() {
 	router.V1.GET(SysRolePath+"/:id", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -21,5 +21,5 @@ func (c *SysRoleController) PathConfig() {
 }
 
 func init() {
-	router.AppendController(new(SysRoleController))
+
 }

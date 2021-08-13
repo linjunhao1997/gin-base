@@ -1,14 +1,13 @@
 package main
 
 import (
-	"gin-base/controller"
-	"gin-base/router"
+	"gin-base/pkg/controller/access"
+	"gin-base/pkg/router"
 )
 
 func main() {
-
-	controller.Enable()
-
 	root := router.Root
+	router.AppendController(&access.SysUserController{}, &access.SysRoleController{})
+	router.ConfigHandler()
 	root.Run() // listen and serve on 0.0.0.0:8080
 }

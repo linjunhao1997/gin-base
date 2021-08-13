@@ -1,4 +1,4 @@
-package handler
+package base
 
 import (
 	"errors"
@@ -17,12 +17,12 @@ var (
 	trans ut.Translator
 )
 
-func validate(data interface{}) error {
+func (g *Gin) validate(data interface{}) error {
 	err := v.Struct(data)
 	return err
 }
 
-func ValidateId(g Gin) (int, bool) {
+func (g *Gin) ValidateId() (int, bool) {
 	id, err := strconv.Atoi(g.C.Param("id"))
 	if err != nil {
 		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
@@ -31,14 +31,14 @@ func ValidateId(g Gin) (int, bool) {
 	return id, true
 }
 
-func ValidateJson(g Gin, body interface{}) bool {
+func (g *Gin) ValidateJson(body interface{}) bool {
 	err := g.C.ShouldBindJSON(body)
 	if err != nil {
 		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
 		return false
 	}
 
-	err = validate(body)
+	err = g.validate(body)
 	if err != nil {
 		errs, ok := err.(validator.ValidationErrors)
 		if ok {

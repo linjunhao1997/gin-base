@@ -1,5 +1,0 @@
-package access
-
-func EnableController() {
-
-}
