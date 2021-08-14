@@ -47,3 +47,19 @@ func ResetPassword(g *base.Gin) {
 	})
 
 }
+
+func SearchSysUsers(g *base.Gin) {
+
+	param := g.ValidateAllowField(base.NewAllowField("id", "username"))
+	if param == nil {
+		return
+	}
+
+	users, err := service.SearchSysUsers(param)
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	g.RespSuccess(users, "")
+}

@@ -55,6 +55,22 @@ func (g *Gin) ValidateJson(body interface{}) bool {
 	return true
 }
 
+func (g *Gin) ValidateAllowField(field AllowField) *SearchParam {
+
+	var body SearchParam
+	ok := g.ValidateJson(&body)
+	if !ok {
+		return nil
+	}
+
+	err := body.Validate(field)
+	if err != nil {
+		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
+		return nil
+	}
+	return &body
+}
+
 func init() {
 	uni := ut.New(zh.New(), zh.New())
 	trans, _ = uni.GetTranslator("zh")

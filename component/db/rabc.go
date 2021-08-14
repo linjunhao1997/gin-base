@@ -10,7 +10,7 @@ import (
 var RABC *gorm.DB
 
 func new() *gorm.DB {
-	dsn := "root:123456@tcp(192.168.100.100:3306)/rabc?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:123456@tcp(192.168.100.100:3306)/gorabc?charset=utf8mb4&parseTime=True&loc=Local"
 	mysqlConfig := mysql.Config{
 		DSN:                       dsn,   // DSN data source name
 		DefaultStringSize:         191,   // string 类型字段的默认长度
@@ -21,7 +21,8 @@ func new() *gorm.DB {
 	}
 
 	gormConfig := gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true},
+		NamingStrategy:                           schema.NamingStrategy{SingularTable: true},
+		DisableForeignKeyConstraintWhenMigrating: false,
 	}
 
 	db, err := gorm.Open(mysql.New(mysqlConfig), &gormConfig)
@@ -40,6 +41,7 @@ func new() *gorm.DB {
 	// SetConnMaxLifetime 设置了连接可复用的最大时间。
 	native.SetConnMaxLifetime(time.Hour)
 
+	// db.Migrator()
 	return db
 
 }

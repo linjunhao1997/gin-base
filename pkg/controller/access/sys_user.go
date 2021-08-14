@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SysUserPath = "/SysUsers"
+	SysUserPath = "/sysUsers"
 )
 
 type SysUserController struct {
@@ -15,7 +15,10 @@ type SysUserController struct {
 }
 
 func (c *SysUserController) HandlerConfig() {
+
 	router.V1.GET(SysUserPath+"/:id", c.Wrap(handler.GetSysUser))
+
+	router.V1.POST(SysUserPath+"/_search", c.Wrap(handler.SearchSysUsers))
 
 	//router.V1.PATCH(SysUserPath+"/:id", handler.ResetPassword)
 }
