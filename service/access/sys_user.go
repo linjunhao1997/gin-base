@@ -3,7 +3,7 @@ package service
 import (
 	"gin-base/component/db"
 	model "gin-base/model/access"
-	"gin-base/pkg/base"
+	"gorm.io/gorm"
 )
 
 func GetSysUser(id int) (*model.SysUser, error) {
@@ -14,10 +14,10 @@ func GetSysUser(id int) (*model.SysUser, error) {
 	return &user, nil
 }
 
-func SearchSysUsers(param *base.SearchParam) ([]*model.SysUser, error) {
+func SearchSysUsers(db *gorm.DB) (model.SysUsers, error) {
 
-	sysUsers := make([]*model.SysUser, 0)
-	if err := param.Search(base.NewLoadField(model.SysRoles)).Find(&sysUsers).Error; err != nil {
+	sysUsers := make(model.SysUsers, 0)
+	if err := db.Find(&sysUsers).Error; err != nil {
 		return nil, err
 	}
 	/*	db.RABC.Debug().Raw(`SELECT * FROM sys_user WHERE username LIKE 'tes%' ORDER BY id desc LIMIT 10`).Scan(&sysUsers)*/

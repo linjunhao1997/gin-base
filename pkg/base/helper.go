@@ -2,7 +2,8 @@ package base
 
 import (
 	"fmt"
-	"gin-base/component/db"
+	db "gin-base/component/db"
+	"gin-base/model"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,13 @@ type SearchParam struct {
 	Like     map[string]string      `json:"like"`
 	Range    map[string]*Range      `json:"range"`
 	Sort     map[string]int         `json:"sort"`
+}
+
+type Pagination struct {
+	List     interface{} `json:"list"`
+	Page     int         `json:"page"`
+	PageSize int         `json:"pageSize"`
+	Total    int         `json:"total"`
 }
 
 type AllowField map[string]struct{}
@@ -71,39 +79,95 @@ func (param *SearchParam) Validate(allowField AllowField) error {
 	return nil
 }
 
-func (param *SearchParam) Search(loadField LoadField) *gorm.DB {
+func (param *SearchParam) Search(field ...string) *gorm.DB {
+
+	fieldName := NewLoadField(field...)
+
 	db := db.RABC
-	for field := range loadField {
-		db = db.Preload(field)
+	for k := range fieldName {
+		db = db.Preload(k)
 	}
-	db = db.Where(param.Eq)
-	// 不支持"%"开头的like查询，效率太低
-	for k, v := range param.Like {
-		db = db.Where(fmt.Sprintf("%s LIKE ?", k), v+"%")
-	}
-	for k, v := range param.Range {
-		if v.start != nil {
-			db = db.Where(fmt.Sprintf("%s >= ?", k), v.start)
-		}
-		if v.end != nil {
-			db = db.Where(fmt.Sprintf("%s < ?", k), v.end)
-		}
-	}
-	for k, v := range param.Sort {
-		if v == 1 {
-			db = db.Order(k)
-		}
-		if v == -1 {
-			db = db.Order(k + " desc")
-		}
-	}
-	if param.Page == 0 {
-		param.Page = 1
-	}
-	if param.PageSize == 0 {
-		param.PageSize = 10
+	db = db.Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param), SortFunc(param), PaginateFunc(param))
+	return db
+}
+
+func (param *SearchParam) CountTotal(model interface{}) int {
+	db := db.RABC
+	var total int64
+	db = db.Model(model).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
+	return int(total)
+}
+
+func (param *SearchParam) NewPagination(data model.Models) Pagination {
+	pagination := Pagination{
+		Page:     param.Page,
+		PageSize: param.PageSize,
+		Total:    param.CountTotal(data.GetModel()),
 	}
 
-	offset := (param.Page - 1) * param.PageSize
-	return db.Offset(offset).Limit(param.PageSize)
+	if data.GetSize() == 0 {
+		pagination.List = make([]interface{}, 0)
+	}
+
+	pagination.List = data
+	return pagination
+}
+
+func EqFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		db = db.Where(param.Eq)
+		return db
+	}
+}
+
+func LikeFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		// 不支持"%"开头的like查询，效率太低
+		for k, v := range param.Like {
+			db = db.Where(fmt.Sprintf("%s LIKE ?", k), v+"%")
+		}
+		return db
+	}
+}
+
+func RangeFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		for k, v := range param.Range {
+			if v.start != nil {
+				db = db.Where(fmt.Sprintf("%s >= ?", k), v.start)
+			}
+			if v.end != nil {
+				db = db.Where(fmt.Sprintf("%s < ?", k), v.end)
+			}
+		}
+		return db
+	}
+}
+
+func SortFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		for k, v := range param.Sort {
+			if v == 1 {
+				db = db.Order(k)
+			}
+			if v == -1 {
+				db = db.Order(k + " desc")
+			}
+		}
+		return db
+	}
+}
+
+func PaginateFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if param.Page == 0 {
+			param.Page = 1
+		}
+		if param.PageSize == 0 {
+			param.PageSize = 10
+		}
+
+		offset := (param.Page - 1) * param.PageSize
+		return db.Offset(offset).Limit(param.PageSize)
+	}
 }

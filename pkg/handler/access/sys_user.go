@@ -1,6 +1,7 @@
 package handler
 
 import (
+	model "gin-base/model/access"
 	"gin-base/pkg/base"
 	service "gin-base/service/access"
 	"github.com/gin-gonic/gin"
@@ -55,11 +56,10 @@ func SearchSysUsers(g *base.Gin) {
 		return
 	}
 
-	users, err := service.SearchSysUsers(param)
+	users, err := service.SearchSysUsers(param.Search(model.SysRoles))
 	if err != nil {
 		g.Abort(err)
 		return
 	}
-
-	g.RespSuccess(users, "")
+	g.RespSuccess(param.NewPagination(users), "")
 }

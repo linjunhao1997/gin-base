@@ -2,8 +2,8 @@ package base
 
 type Response struct {
 	Code int         `json:"code"`
-	Msg  string      `json:"message"`
+	Data interface{} `json:"data"`
 	Err  string      `json:"error"`
 	Ok   bool        `json:"success"`
-	Data interface{} `json:"data"`
+	Msg  string      `json:"message"`
 }

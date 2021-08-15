@@ -17,6 +17,7 @@ func (g *Gin) RespSuccess(data interface{}, msg string) {
 		Code: 0,
 		Data: data,
 		Ok:   true,
+		Msg:  msg,
 	})
 }
 
@@ -26,8 +27,8 @@ func (g *Gin) RespServiceFail(failCode int, msg string) {
 	}
 	g.C.JSON(http.StatusOK, Response{
 		Code: failCode,
-		Msg:  msg,
 		Ok:   false,
+		Msg:  msg,
 	})
 }
 
@@ -37,8 +38,8 @@ func (g *Gin) RespForbidden(msg string) {
 	}
 	g.C.JSON(http.StatusForbidden, Response{
 		Code: FORBIDDEN,
-		Msg:  msg,
 		Ok:   false,
+		Msg:  msg,
 	})
 }
 
@@ -48,8 +49,8 @@ func (g *Gin) RespUnauthorized(msg string) {
 	}
 	g.C.JSON(http.StatusUnauthorized, Response{
 		Code: UNAUTHORIZED,
-		Msg:  msg,
 		Ok:   false,
+		Msg:  msg,
 	})
 }
 
@@ -59,9 +60,9 @@ func (g *Gin) RespError(err error, msg string) {
 	}
 	g.C.JSON(http.StatusInternalServerError, Response{
 		Code: ERROR,
-		Msg:  msg,
 		Err:  err.Error(),
 		Ok:   false,
+		Msg:  msg,
 	})
 }
 
@@ -71,9 +72,9 @@ func (g *Gin) RespNewError(httpCode, errCode int, err error, msg string) {
 	}
 	g.C.JSON(httpCode, Response{
 		Code: errCode,
-		Msg:  msg,
 		Err:  err.Error(),
 		Ok:   false,
+		Msg:  msg,
 	})
 }
 
