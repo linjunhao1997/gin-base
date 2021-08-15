@@ -2,7 +2,7 @@ package base
 
 import (
 	"fmt"
-	db "gin-base/component/db"
+	"gin-base/component/db"
 	"gin-base/model"
 	"gorm.io/gorm"
 )
@@ -94,7 +94,7 @@ func (param *SearchParam) Search(field ...string) *gorm.DB {
 func (param *SearchParam) CountTotal(model interface{}) int {
 	db := db.RABC
 	var total int64
-	db = db.Model(model).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
+	db.Model(model).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
 	return int(total)
 }
 
