@@ -1,14 +1,14 @@
 package service
 
 import (
-	"gin-base/component/db"
+	"gin-base/global/db"
 	model "gin-base/model/access"
 	"gorm.io/gorm"
 )
 
 func GetSysUser(id int) (*model.SysUser, error) {
 	var user model.SysUser
-	if err := db.RABC.Preload(model.SysRoles).Where("id = ?", id).Take(&user).Error; err != nil {
+	if err := db.DB.Preload(model.SysRoles).Where("id = ?", id).Take(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

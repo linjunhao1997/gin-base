@@ -19,7 +19,3 @@ func (c *SysRoleController) HandlerConfig() {
 		})
 	})
 }
-
-func init() {
-
-}

@@ -22,7 +22,3 @@ func (c *SysUserController) HandlerConfig() {
 
 	//router.V1.PATCH(SysUserPath+"/:id", handler.ResetPassword)
 }
-
-func init() {
-
-}

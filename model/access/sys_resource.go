@@ -12,12 +12,12 @@ const (
 )
 
 type SysResource struct {
-	ID       int          `gorm:"column:id;primary_key" json:"id"`
-	Name     string       `gorm:"column:name" json:"name"`
-	Tag      string       `gorm:"column:tag" json:"tag"`
-	Type     ResourceType `gorm:"type" json:"type"`
-	Disable  uint8        `gorm:"disable" json:"disable"`
-	SysRoles []*SysRole   `gorm:"many2many:sys_role_r_sys_resource"`
+	ID      int          `gorm:"column:id;primary_key" json:"id"`
+	Name    string       `gorm:"column:name" json:"name"`
+	Tag     string       `gorm:"column:tag" json:"tag"`
+	Type    ResourceType `gorm:"type" json:"type"`
+	Disable uint8        `gorm:"disable" json:"disable"`
+	//SysRoles []*SysRole   `gorm:"many2many:sys_role_r_sys_resource"`
 }
 
 type SysResources []*SysResource

@@ -33,7 +33,3 @@ func ConfigHandler() {
 		c.HandlerConfig()
 	}
 }
-
-func init() {
-
-}
