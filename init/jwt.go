@@ -5,6 +5,7 @@ import (
 	"gin-base/global/db"
 	"gin-base/global/mid"
 	model "gin-base/model/access"
+	"gin-base/pkg/base"
 	"gin-base/pkg/router"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
@@ -74,10 +75,8 @@ func newJwtMiddleware() {
 			return false
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{
-				"code":    code,
-				"message": message,
-			})
+			g := base.Gin{C: c}
+			g.RespUnauthorized("")
 		},
 		// TokenLookup is a string in the form of "<source>:<name>" that is used
 		// to extract token from the request.

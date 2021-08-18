@@ -5,6 +5,7 @@ var MsgFlags = map[int]string{
 	ERROR:          "请求失败",
 	INVALID_PARAMS: "请求参数错误",
 	FORBIDDEN:      "请求禁止",
+	UNAUTHORIZED:   "认证失败",
 }
 
 func GetMsg(code int) string {
