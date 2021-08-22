@@ -2,9 +2,9 @@ package initialize
 
 import (
 	"fmt"
-	"gin-base/global/db"
-	"gin-base/global/mid"
+	"gin-base/global"
 	model "gin-base/model/access"
+	"gin-base/model/common"
 	"gin-base/pkg/base"
 	"gin-base/pkg/router"
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -18,11 +18,9 @@ type UserInfo struct {
 	Password string `json:"password"`
 }
 
-var identityKey = "id"
-
 func JwtMiddleware() {
 	newJwtMiddleware()
-	router.V1.Use(mid.JwtMiddleware.MiddlewareFunc())
+	router.V1.Use(global.JwtMiddleware.MiddlewareFunc(), CheckAuth())
 }
 
 func newJwtMiddleware() {
@@ -30,19 +28,24 @@ func newJwtMiddleware() {
 		Realm:       "auth",
 		Key:         []byte("2021"),
 		Timeout:     time.Hour * 24 * 7,
-		IdentityKey: identityKey,
+		IdentityKey: "userInfo",
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*model.SysUser); ok {
 				return jwt.MapClaims{
-					identityKey: v.UserName,
+					"id":       v.ID,
+					"username": v.UserName,
 				}
 			}
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
+			id := int(claims["id"].(float64))
 			return &model.SysUser{
-				UserName: claims[identityKey].(string),
+				Model: common.Model{
+					ID: id,
+				},
+				UserName: claims["username"].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -58,7 +61,7 @@ func newJwtMiddleware() {
 				Password: password,
 			}
 
-			err := db.DB.Model(user).Where("username = ? and password = ?", user.UserName, user.Password).Take(&user).Error
+			err := global.DB.Model(user).Where("username = ? and password = ?", user.UserName, user.Password).Take(&user).Error
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			} else {
@@ -66,13 +69,12 @@ func newJwtMiddleware() {
 			}
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if v, ok := data.(*model.SysUser); ok && v.UserName == "admin" {
+			if _, ok := data.(*model.SysUser); ok {
 				return true
 			}
 
 			return false
 
-			return false
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
 			g := base.Gin{C: c}
@@ -109,5 +111,5 @@ func newJwtMiddleware() {
 		log.Fatal("authMiddleware.MiddlewareInit() Error:" + errInit.Error())
 	}
 
-	mid.JwtMiddleware = middleware
+	global.JwtMiddleware = middleware
 }

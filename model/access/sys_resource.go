@@ -15,7 +15,7 @@ type SysResource struct {
 	ID      int          `gorm:"column:id;primary_key" json:"id"`
 	Name    string       `gorm:"column:name" json:"name"`
 	Tag     string       `gorm:"column:tag" json:"tag"`
-	Type    ResourceType `gorm:"type" json:"type"`
+	Type    ResourceType `gorm:"column:type" json:"type"`
 	Disable uint8        `gorm:"disable" json:"disable"`
 	//SysRoles []*SysRole   `gorm:"many2many:sys_role_r_sys_resource"`
 }

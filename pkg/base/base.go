@@ -36,6 +36,7 @@ func (g *Gin) RespForbidden(msg string) {
 	if msg == "" {
 		msg = GetMsg(FORBIDDEN)
 	}
+	g.C.Abort()
 	g.C.JSON(http.StatusForbidden, Response{
 		Code: FORBIDDEN,
 		Ok:   false,
@@ -47,6 +48,7 @@ func (g *Gin) RespUnauthorized(msg string) {
 	if msg == "" {
 		msg = GetMsg(UNAUTHORIZED)
 	}
+	g.C.Abort()
 	g.C.JSON(http.StatusUnauthorized, Response{
 		Code: UNAUTHORIZED,
 		Ok:   false,
@@ -58,6 +60,7 @@ func (g *Gin) RespError(err error, msg string) {
 	if msg == "" {
 		msg = GetMsg(ERROR)
 	}
+	g.C.Abort()
 	g.C.JSON(http.StatusInternalServerError, Response{
 		Code: ERROR,
 		Err:  err.Error(),
@@ -70,6 +73,7 @@ func (g *Gin) RespNewError(httpCode, errCode int, err error, msg string) {
 	if msg == "" {
 		msg = GetMsg(ERROR)
 	}
+	g.C.Abort()
 	g.C.JSON(httpCode, Response{
 		Code: errCode,
 		Err:  err.Error(),
@@ -79,6 +83,7 @@ func (g *Gin) RespNewError(httpCode, errCode int, err error, msg string) {
 }
 
 func (g *Gin) Abort(err error) {
+	g.C.Abort()
 	g.RespError(err, "")
 }
 

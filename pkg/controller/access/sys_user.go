@@ -20,5 +20,7 @@ func (c *SysUserController) HandlerConfig() {
 
 	router.V1.POST(SysUserPath+"/_search", c.Wrap(handler.SearchSysUsers))
 
+	router.V1.POST(SysUserPath+"/_updateRoles", c.Wrap(handler.UpdateSysRoles))
+
 	//router.V1.PATCH(SysUserPath+"/:id", handler.ResetPassword)
 }

@@ -1,13 +1,15 @@
 package model
 
-import "gin-base/model"
+import (
+	"gin-base/model/common"
+)
 
 const (
 	SysRoles = "SysRoles"
 )
 
 type SysUser struct {
-	model.Base
+	common.Model
 	UserName     string     `gorm:"column:username" json:"username"`
 	Password     string     `gorm:"column:password" json:"-"`
 	SysRoles     []*SysRole `gorm:"many2many:sys_user_r_sys_role" json:"sysRoles,omitempty"`
@@ -15,14 +17,9 @@ type SysUser struct {
 }
 
 // must define
-type SysUsers []*SysUser
-
-// must define
-func (s SysUsers) GetSize() int {
-	return len(s)
+func (user *SysUser) GetID() int {
+	return user.ID
 }
 
 // must define
-func (s SysUsers) GetModel() interface{} {
-	return SysUser{}
-}
+type SysUsers []SysUser

@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	"gin-base/global/db"
+	"gin-base/global"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -9,7 +9,7 @@ import (
 )
 
 func MySqlGorm() {
-	db.DB = newDB()
+	global.DB = newDB()
 }
 
 func newDB() *gorm.DB {

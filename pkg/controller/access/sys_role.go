@@ -1,21 +1,20 @@
 package access
 
 import (
+	"gin-base/pkg/base"
+	handler "gin-base/pkg/handler/access"
 	"gin-base/pkg/router"
-	"github.com/gin-gonic/gin"
 )
 
 const (
-	SysRolePath = "/SysRoles"
+	SysRolePath = "/sysRoles"
 )
 
 type SysRoleController struct {
+	base.Controller
 }
 
 func (c *SysRoleController) HandlerConfig() {
-	router.V1.GET(SysRolePath+"/:id", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	router.V1.POST(SysRolePath, c.Wrap(handler.CreateSysRole))
+	router.V1.POST(SysRolePath+"/_relatedRoleResources", c.Wrap(handler.RelatedRoleResources))
 }

@@ -2,10 +2,13 @@ package initialize
 
 import (
 	"fmt"
-	"gin-base/global/db"
-	"gin-base/global/rabc"
+	"gin-base/global"
+	model "gin-base/model/access"
+	"gin-base/pkg/base"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 func CasbinEnforcer() {
@@ -13,12 +16,12 @@ func CasbinEnforcer() {
 	if err != nil {
 		panic(fmt.Sprintf("初始化casbins失败: %v", err))
 	}
-	rabc.Enforcer = enforcer
+	global.Enforcer = enforcer
 }
 
 func newCasbin() (*casbin.Enforcer, error) {
 	// casbin不使用事务管理, 因为他内部使用到事务, 重复用会导致冲突
-	adapter, err := gormadapter.NewAdapterByDBUseTableName(db.DB, "", "sys_casbin")
+	adapter, err := gormadapter.NewAdapterByDBUseTableName(global.DB, "", "sys_casbin")
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +30,28 @@ func newCasbin() (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	enforcer.EnableAutoSave(false)
 	err = enforcer.LoadPolicy()
 	if err != nil {
 		return nil, err
 	}
 	return enforcer, nil
+}
+
+func CheckAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		g := base.Gin{C: c}
+		user, _ := c.Get("userInfo")
+		ok, err := global.Enforcer.Enforce(strconv.Itoa(user.(*model.SysUser).ID), c.Request.RequestURI, c.Request.Method)
+		if err != nil {
+			g.Abort(err)
+			return
+		} else if !ok {
+			g.RespForbidden("")
+			return
+
+		} else {
+			c.Next()
+		}
+	}
 }

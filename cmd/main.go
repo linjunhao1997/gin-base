@@ -1,9 +1,21 @@
 package main
 
 import (
-	"gin-base/init"
+	initialize "gin-base/init"
 	"gin-base/pkg/router"
 )
+
+type A interface {
+	GetID()
+}
+
+type B struct {
+	name string
+}
+
+func (B) GetID() {
+
+}
 
 func main() {
 	initialize.Load()

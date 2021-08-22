@@ -1,7 +1,7 @@
 package public
 
 import (
-	"gin-base/global/mid"
+	"gin-base/global"
 	"gin-base/pkg/base"
 	"gin-base/pkg/router"
 )
@@ -13,5 +13,5 @@ type AuthController struct {
 var identityKey = "id"
 
 func (c *AuthController) HandlerConfig() {
-	router.AuthV1.POST("/login", mid.JwtMiddleware.LoginHandler)
+	router.AuthV1.POST("/login", global.JwtMiddleware.LoginHandler)
 }

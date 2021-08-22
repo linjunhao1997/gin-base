@@ -2,8 +2,7 @@ package base
 
 import (
 	"fmt"
-	"gin-base/global/db"
-	"gin-base/model"
+	"gin-base/global"
 	"gorm.io/gorm"
 )
 
@@ -79,11 +78,11 @@ func (param *SearchParam) Validate(allowField AllowField) error {
 	return nil
 }
 
-func (param *SearchParam) Search(field ...string) *gorm.DB {
+func (param *SearchParam) Search(loadField ...string) *gorm.DB {
 
-	fieldName := NewLoadField(field...)
+	fieldName := NewLoadField(loadField...)
 
-	db := db.DB
+	db := global.DB
 	for k := range fieldName {
 		db = db.Preload(k)
 	}
@@ -91,22 +90,18 @@ func (param *SearchParam) Search(field ...string) *gorm.DB {
 	return db
 }
 
-func (param *SearchParam) CountTotal(model interface{}) int {
-	db := db.DB
+func (param *SearchParam) CountTotal(data interface{}) int {
+	db := global.DB
 	var total int64
-	db.Model(model).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
+	db.Model(data).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
 	return int(total)
 }
 
-func (param *SearchParam) NewPagination(data model.Models) Pagination {
+func (param *SearchParam) NewPagination(data interface{}, model interface{}) Pagination {
 	pagination := Pagination{
 		Page:     param.Page,
 		PageSize: param.PageSize,
-		Total:    param.CountTotal(data.GetModel()),
-	}
-
-	if data.GetSize() == 0 {
-		pagination.List = make([]interface{}, 0)
+		Total:    param.CountTotal(model),
 	}
 
 	pagination.List = data

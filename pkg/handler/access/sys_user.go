@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"gin-base/global"
 	model "gin-base/model/access"
 	"gin-base/pkg/base"
 	service "gin-base/service/access"
@@ -61,5 +62,29 @@ func SearchSysUsers(g *base.Gin) {
 		g.Abort(err)
 		return
 	}
-	g.RespSuccess(param.NewPagination(users), "")
+	g.RespSuccess(param.NewPagination(users, &model.SysUser{}), "")
+}
+
+type UpdateSysRolesParam struct {
+	UserId  int   `json:"userId"`
+	RoleIds []int `json:"roleIds"`
+}
+
+func UpdateSysRoles(g *base.Gin) {
+	var body UpdateSysRolesParam
+	if ok := g.ValidateJson(&body); !ok {
+		return
+	}
+	var user model.SysUser
+	if err := global.DB.Where("id = ?", body.UserId).Take(&user).Error; err != nil {
+		g.Abort(err)
+		return
+	}
+
+	err := service.UpdatePGRoles(user.ID, 1)
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+	g.RespSuccess(nil, "更新成功")
 }
