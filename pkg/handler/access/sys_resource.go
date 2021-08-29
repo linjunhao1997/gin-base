@@ -21,3 +21,12 @@ func CreateSysResource(g *base.Gin) {
 
 	g.RespSuccess(body, "创建资源成功")
 }
+
+func GetAllSysResource(g *base.Gin) {
+	list, err := service.GetAllSysResource()
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+	g.RespSuccess(list, "查询成功")
+}

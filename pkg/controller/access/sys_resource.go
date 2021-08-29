@@ -16,4 +16,5 @@ type SysResourceController struct {
 
 func (c *SysResourceController) HandlerConfig() {
 	router.V1.POST(SysResourcePath, c.Wrap(handler.CreateSysResource))
+	router.V1.GET(SysResourcePath, c.Wrap(handler.GetAllSysResource))
 }

@@ -12,12 +12,16 @@ type Range struct {
 }
 
 type SearchParam struct {
-	Page     int                    `json:"page"`
-	PageSize int                    `json:"pageSize"`
-	Eq       map[string]interface{} `json:"eq"`
-	Like     map[string]string      `json:"like"`
-	Range    map[string]*Range      `json:"range"`
-	Sort     map[string]int         `json:"sort"`
+	Page     int `json:"page"`
+	PageSize int `json:"pageSize"`
+	Filter   `json:"filter""`
+	Sorter   map[string]int `json:"sorter"`
+}
+
+type Filter struct {
+	Eq    map[string]interface{} `json:"eq"`
+	Like  map[string]string      `json:"like"`
+	Range map[string]*Range      `json:"range"`
 }
 
 type Pagination struct {
@@ -70,7 +74,7 @@ func (param *SearchParam) Validate(allowField AllowField) error {
 			return fmt.Errorf("不允许传入字段[%s]", k)
 		}
 	}
-	for k, _ := range param.Sort {
+	for k, _ := range param.Sorter {
 		if !allowField.contains(k) {
 			return fmt.Errorf("不允许传入字段[%s]", k)
 		}
@@ -141,7 +145,7 @@ func RangeFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
 
 func SortFunc(param *SearchParam) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		for k, v := range param.Sort {
+		for k, v := range param.Sorter {
 			if v == 1 {
 				db = db.Order(k)
 			}

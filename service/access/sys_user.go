@@ -25,6 +25,15 @@ func SearchSysUsers(db *gorm.DB) (model.SysUsers, error) {
 	return sysUsers, nil
 }
 
+func RelatedUserRoles(userId int, roleIds ...int) error {
+	user := model.SysRole{ID: userId}
+	roles := make([]model.SysRole, len(roleIds))
+	for i, roleId := range roleIds {
+		roles[i] = model.SysRole{ID: roleId}
+	}
+	return global.DB.Model(&user).Association("SysRoles").Replace(&roles)
+}
+
 func UpdatePGRoles(userId int, roleIds ...int) error {
 
 	roles := gutils.Int2String(roleIds)

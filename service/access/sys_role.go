@@ -17,6 +17,7 @@ func GetApiResources(roleId ...int) ([]model.SysResource, error) {
 func CreateSysRole(role *model.SysRole) error {
 	return global.DB.Create(role).Error
 }
+
 func RelatedRoleResources(roleId int, resourceIds []int) error {
 	role := model.SysRole{ID: roleId}
 	resources := make([]model.SysResource, len(resourceIds))
