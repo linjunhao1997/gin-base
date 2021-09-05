@@ -42,7 +42,12 @@ func CheckAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		g := base.Gin{C: c}
 		user, _ := c.Get("userInfo")
-		ok, err := global.Enforcer.Enforce(strconv.Itoa(user.(*model.SysUser).ID), c.Request.RequestURI, c.Request.Method)
+		sysUser := user.(*model.SysUser)
+		if sysUser.UserName == "admin" {
+			c.Next()
+			return
+		}
+		ok, err := global.Enforcer.Enforce(strconv.Itoa(sysUser.ID), c.Request.RequestURI, c.Request.Method)
 		if err != nil {
 			g.Abort(err)
 			return

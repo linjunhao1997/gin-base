@@ -25,6 +25,14 @@ func SearchSysUsers(db *gorm.DB) (model.SysUsers, error) {
 	return sysUsers, nil
 }
 
+func DisableSysUser(id int) error {
+	return global.DB.Model(&model.SysUser{}).Where("id = ?", id).Update("disable", 1).Error
+}
+
+func EnableSysUser(id int) error {
+	return global.DB.Model(&model.SysUser{}).Where("id = ?", id).Update("disable", 0).Error
+}
+
 func RelatedUserRoles(userId int, roleIds ...int) error {
 	user := model.SysRole{ID: userId}
 	roles := make([]model.SysRole, len(roleIds))

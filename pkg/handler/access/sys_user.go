@@ -24,6 +24,38 @@ func GetSysUser(g *base.Gin) {
 	g.RespSuccess(user, "")
 }
 
+func EnableSysUser(g *base.Gin) {
+
+	id, ok := g.ValidateId()
+	if !ok {
+		return
+	}
+
+	err := service.EnableSysUser(id)
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	g.RespSuccess(nil, "启用成功")
+}
+
+func DisableSysUser(g *base.Gin) {
+
+	id, ok := g.ValidateId()
+	if !ok {
+		return
+	}
+
+	err := service.DisableSysUser(id)
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	g.RespSuccess(nil, "禁用成功")
+}
+
 type ResetPasswordParam struct {
 	userId          int
 	OldPassword     string `json:"oldPassword" validate:"required"`
@@ -63,6 +95,36 @@ func SearchSysUsers(g *base.Gin) {
 		return
 	}
 	g.RespSuccess(param.NewPagination(users, &model.SysUser{}), "")
+}
+
+type UpdateSysUserParam struct {
+	Disable int8 `json:"disable" validate:"oneof=0 1"`
+}
+
+func UpdateSysUser(g *base.Gin) {
+	id, ok := g.ValidateId()
+	if !ok {
+		return
+	}
+	user := &model.SysUser{}
+	err := global.DB.Where("id = ?", id).Take(user).Error
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	body := &UpdateSysUserParam{}
+	if ok := g.ValidateJson(body); !ok {
+		return
+	}
+
+	err = global.DB.Model(user).Select("Disable", "Disable").Updates(model.SysUser{Disable: body.Disable}).Error
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	g.RespSuccess(user, "更新成功")
 }
 
 type UpdateSysRolesParam struct {
