@@ -10,6 +10,10 @@ func Load() {
 	MySqlGorm()
 	CasbinEnforcer()
 	JwtMiddleware()
-	router.AppendController(&access.SysRoleController{}, &access.SysUserController{}, &public.AuthController{})
+	router.AppendController(
+		&access.SysRoleController{},
+		&access.SysUserController{},
+		&access.SysResourceController{},
+		&public.AuthController{})
 	router.ConfigHandler()
 }

@@ -16,5 +16,8 @@ type SysRoleController struct {
 
 func (c *SysRoleController) HandlerConfig() {
 	router.V1.POST(SysRolePath, c.Wrap(handler.CreateSysRole))
+
+	router.V1.POST(SysRolePath+"/_search", c.Wrap(handler.SearchSysRoles))
+
 	router.V1.POST(SysRolePath+"/_relatedRoleResources", c.Wrap(handler.RelatedRoleResources))
 }

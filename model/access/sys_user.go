@@ -4,10 +4,6 @@ import (
 	"gin-base/model/common"
 )
 
-const (
-	SysRoles = "SysRoles"
-)
-
 type SysUser struct {
 	common.Model
 	UserName     string     `gorm:"column:username" json:"username"`

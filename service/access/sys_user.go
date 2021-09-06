@@ -10,7 +10,7 @@ import (
 
 func GetSysUser(id int) (*model.SysUser, error) {
 	var user model.SysUser
-	if err := global.DB.Preload(model.SysRoles).Where("id = ?", id).Take(&user).Error; err != nil {
+	if err := global.DB.Preload(model.SYSROLES).Where("id = ?", id).Take(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

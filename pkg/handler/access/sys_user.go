@@ -89,7 +89,7 @@ func SearchSysUsers(g *base.Gin) {
 		return
 	}
 
-	users, err := service.SearchSysUsers(param.Search(model.SysRoles))
+	users, err := service.SearchSysUsers(param.Search(model.SYSROLES))
 	if err != nil {
 		g.Abort(err)
 		return

@@ -6,6 +6,20 @@ import (
 	service "gin-base/service/access"
 )
 
+func SearchSysRoles(g *base.Gin) {
+	param := g.ValidateAllowField(base.NewAllowField("id", "name"))
+	if param == nil {
+		return
+	}
+
+	roles, err := service.SearchSysRoles(param.Search(model.SYSRESOURCES))
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+	g.RespSuccess(param.NewPagination(roles, &model.SysRole{}), "")
+}
+
 func CreateSysRole(g *base.Gin) {
 
 	body := &model.SysRole{}
