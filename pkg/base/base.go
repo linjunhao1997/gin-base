@@ -1,12 +1,25 @@
 package base
 
 import (
+	model "gin-base/model/access"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type Gin struct {
 	C *gin.Context
+}
+
+func (g *Gin) EnsureSysUser() *model.SysUser {
+	user, _ := g.C.Get("userInfo")
+	sysUser := user.(*model.SysUser)
+	return sysUser
+}
+
+func EnsureSysUser(c gin.Context) *model.SysUser {
+	user, _ := c.Get("userInfo")
+	sysUser := user.(*model.SysUser)
+	return sysUser
 }
 
 func (g *Gin) RespSuccess(data interface{}, msg string) {

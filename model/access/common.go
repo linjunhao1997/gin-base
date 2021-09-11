@@ -1,7 +1,8 @@
 package model
 
 const (
-	SYSUSERS     = "SysUsers"
-	SYSROLES     = "SysRoles"
-	SYSRESOURCES = "SysResources"
+	SYSUSERS        = "SysUsers"
+	SYSROLES        = "SysRoles"
+	SYSRESOURCES    = "SysResources"
+	SYSSUBRESOURCES = "SysSubResources"
 )

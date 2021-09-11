@@ -3,17 +3,7 @@ package service
 import (
 	"gin-base/global"
 	model "gin-base/model/access"
-	"gorm.io/gorm"
 )
-
-func SearchSysRoles(db *gorm.DB) ([]model.SysRole, error) {
-
-	roles := make([]model.SysRole, 0)
-	if err := db.Find(&roles).Error; err != nil {
-		return nil, err
-	}
-	return roles, nil
-}
 
 func GetApiResources(roleId ...int) ([]model.SysResource, error) {
 

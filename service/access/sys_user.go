@@ -4,7 +4,6 @@ import (
 	"gin-base/global"
 	model "gin-base/model/access"
 	gutils "gin-base/utils"
-	"gorm.io/gorm"
 	"strconv"
 )
 
@@ -14,15 +13,6 @@ func GetSysUser(id int) (*model.SysUser, error) {
 		return nil, err
 	}
 	return &user, nil
-}
-
-func SearchSysUsers(db *gorm.DB) (model.SysUsers, error) {
-
-	sysUsers := make(model.SysUsers, 0)
-	if err := db.Find(&sysUsers).Error; err != nil {
-		return nil, err
-	}
-	return sysUsers, nil
 }
 
 func DisableSysUser(id int) error {

@@ -3,7 +3,6 @@ package initialize
 import (
 	"fmt"
 	"gin-base/global"
-	model "gin-base/model/access"
 	"gin-base/pkg/base"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -41,8 +40,7 @@ func newCasbin() (*casbin.Enforcer, error) {
 func CheckAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		g := base.Gin{C: c}
-		user, _ := c.Get("userInfo")
-		sysUser := user.(*model.SysUser)
+		sysUser := g.EnsureSysUser()
 		if sysUser.UserName == "admin" {
 			c.Next()
 			return
