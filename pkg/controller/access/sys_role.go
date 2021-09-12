@@ -1,6 +1,7 @@
 package access
 
 import (
+	"gin-base/global"
 	model "gin-base/model/access"
 	"gin-base/pkg/base"
 	"gin-base/pkg/router"
@@ -20,6 +21,8 @@ func (c *SysRoleController) HandlerConfig() {
 
 	router.V1.POST(SysRolePath+"/_search", c.Wrap(c.SearchSysRoles))
 
+	router.V1.GET(SysRolePath+"/:id", c.Wrap(c.GetSysRole))
+
 	router.V1.POST(SysRolePath+"/_relatedRoleResources", c.Wrap(c.RelatedRoleResources))
 }
 
@@ -36,6 +39,22 @@ func (c *SysRoleController) SearchSysRoles(g *base.Gin) {
 	}
 
 	g.RespSuccess(param.NewPagination(roles, &model.SysRole{}), "")
+}
+
+func (c *SysRoleController) GetSysRole(g *base.Gin) {
+
+	id, ok := g.ValidateId()
+	if !ok {
+		return
+	}
+
+	var role model.SysRole
+	if err := global.DB.Preload(model.SYSRESOURCES).Where("id = ?", id).Take(&role).Error; err != nil {
+		g.Abort(err)
+		return
+	}
+
+	g.RespSuccess(role, "")
 }
 
 func (c *SysRoleController) CreateSysRole(g *base.Gin) {
