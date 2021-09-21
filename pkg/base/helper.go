@@ -43,14 +43,6 @@ func NewAllowField(fieldNames ...string) AllowField {
 	return a
 }
 
-func NewLoadField(fieldNames ...string) LoadField {
-	a := make(LoadField, 0)
-	for _, name := range fieldNames {
-		a[name] = struct{}{}
-	}
-	return a
-}
-
 func (a AllowField) contains(fieldName string) bool {
 	if _, ok := a[fieldName]; ok {
 		return true
@@ -84,12 +76,15 @@ func (param *SearchParam) Validate(allowField AllowField) error {
 
 func (param *SearchParam) Search(loadField ...string) *gorm.DB {
 
-	fieldName := NewLoadField(loadField...)
-
 	db := global.DB
-	for k := range fieldName {
-		db = db.Preload(k)
+	for _, e := range loadField {
+		db = db.Preload(e)
 	}
+	db = db.Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param), SortFunc(param), PaginateFunc(param))
+	return db
+}
+
+func (param *SearchParam) PreSearch(db *gorm.DB, loadField ...string) *gorm.DB {
 	db = db.Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param), SortFunc(param), PaginateFunc(param))
 	return db
 }

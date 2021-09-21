@@ -32,24 +32,25 @@ func (c *SysResourceController) HandlerConfig() {
 }
 
 func (c *SysResourceController) SearchSysResources(g *base.Gin) {
+
 	param := g.ValidateAllowField(base.NewAllowField("id", "name"))
 	if param == nil {
 		return
 	}
 
-	slice := make([]string, 5)
+	slice := make([]string, 4)
 	slice[0] = model.SYSSUBRESOURCES
-	for i := 1; i < 5; i++ {
+	for i := 1; i < 4; i++ {
 		slice[i] = strings.Join([]string{slice[i-1], model.SYSSUBRESOURCES}, ".")
 	}
 
 	if param.Eq == nil {
 		param.Eq = make(map[string]interface{})
 	}
-	param.Eq["type"] = model.MODULE
 
 	resources := make([]model.SysResource, 0)
-	if err := param.Search(slice[4]).Find(&resources).Error; err != nil {
+	db := global.DB.Distinct().Table("sys_resource").Joins("left join sys_role_r_sys_resource on sys_resource.id = sys_role_r_sys_resource.sys_resource_id").Where("sys_resource.type = ?", model.MODULE).Preload(slice[3])
+	if err := param.PreSearch(db).Find(&resources).Error; err != nil {
 		g.Abort(err)
 		return
 	}

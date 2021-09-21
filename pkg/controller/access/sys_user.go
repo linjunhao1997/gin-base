@@ -27,6 +27,8 @@ func (c *SysUserController) HandlerConfig() {
 
 	router.V1.PATCH(SysUserPath+"/:id", c.Wrap(c.UpdateSysUser))
 
+	router.V1.GET(SysUserPath+"/self", c.Wrap(c.GetSelf))
+
 	//router.V1.PATCH(SysUserPath+"/:id", handler.ResetPassword)
 }
 
@@ -172,4 +174,16 @@ func (c *SysUserController) UpdateSysRoles(g *base.Gin) {
 		return
 	}
 	g.RespSuccess(nil, "更新成功")
+}
+
+func (c *SysUserController) GetSelf(g *base.Gin) {
+	user := g.EnsureSysUser()
+
+	user, err := service.GetSysUser(user.ID)
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	g.RespSuccess(user, "")
 }

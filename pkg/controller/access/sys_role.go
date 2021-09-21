@@ -49,11 +49,18 @@ func (c *SysRoleController) GetSysRole(g *base.Gin) {
 	}
 
 	var role model.SysRole
-	if err := global.DB.Preload(model.SYSRESOURCES).Where("id = ?", id).Take(&role).Error; err != nil {
+	if err := global.DB.Where("id = ?", id).Take(&role).Error; err != nil {
 		g.Abort(err)
 		return
 	}
 
+	sysResource, err := service.GetSysResources(id)
+	if err != nil {
+		g.Abort(err)
+		return
+	}
+
+	role.SysResources = sysResource
 	g.RespSuccess(role, "")
 }
 
