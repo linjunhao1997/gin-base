@@ -119,7 +119,7 @@ func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 		return
 	}
 
-	g.RespSuccess(param.NewPagination(users, &model.SysUser{}), "")
+	g.RespSuccess(param.NewPagination(users, &model.SysUser{}, nil), "")
 }
 
 type UpdateSysUserParam struct {

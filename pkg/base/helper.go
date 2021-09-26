@@ -89,20 +89,27 @@ func (param *SearchParam) PreSearch(db *gorm.DB, loadField ...string) *gorm.DB {
 	return db
 }
 
-func (param *SearchParam) CountTotal(data interface{}) int {
-	db := global.DB
+func (param *SearchParam) CountTotal(data interface{}, db *gorm.DB) int {
+	var total int64
+	db.Debug().Model(data).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
+	return int(total)
+}
+
+func (param *SearchParam) PreCountTotal(db *gorm.DB, data interface{}) int {
 	var total int64
 	db.Model(data).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
 	return int(total)
 }
 
-func (param *SearchParam) NewPagination(data interface{}, model interface{}) Pagination {
-	pagination := Pagination{
-		Page:     param.Page,
-		PageSize: param.PageSize,
-		Total:    param.CountTotal(model),
-	}
+func (param *SearchParam) NewPagination(data interface{}, model interface{}, db *gorm.DB) Pagination {
+	pagination := Pagination{}
+	if db == nil {
+		db = global.DB
 
+	}
+	pagination.Page = param.Page
+	pagination.PageSize = param.PageSize
+	pagination.Total = param.CountTotal(model, db)
 	pagination.List = data
 	return pagination
 }

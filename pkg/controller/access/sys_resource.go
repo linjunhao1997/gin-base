@@ -49,12 +49,12 @@ func (c *SysResourceController) SearchSysResources(g *base.Gin) {
 	}
 
 	resources := make([]model.SysResource, 0)
-	db := global.DB.Distinct().Table("sys_resource").Joins("left join sys_role_r_sys_resource on sys_resource.id = sys_role_r_sys_resource.sys_resource_id").Where("sys_resource.type = ?", model.MODULE).Preload(slice[3])
+	db := global.DB.Table("sys_resource").Where("sys_resource.type = ?", model.MODULE).Preload(slice[3])
 	if err := param.PreSearch(db).Find(&resources).Error; err != nil {
 		g.Abort(err)
 		return
 	}
-	g.RespSuccess(param.NewPagination(resources, &model.SysResource{}), "")
+	g.RespSuccess(param.NewPagination(resources, &model.SysResource{}, db), "")
 }
 
 func (c *SysResourceController) RelatedSubResources(g *base.Gin) {

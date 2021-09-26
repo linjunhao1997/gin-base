@@ -38,7 +38,7 @@ func (c *SysRoleController) SearchSysRoles(g *base.Gin) {
 		return
 	}
 
-	g.RespSuccess(param.NewPagination(roles, &model.SysRole{}), "")
+	g.RespSuccess(param.NewPagination(roles, &model.SysRole{}, nil), "")
 }
 
 func (c *SysRoleController) GetSysRole(g *base.Gin) {
