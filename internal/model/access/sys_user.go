@@ -1,7 +1,7 @@
 package model
 
 import (
-	"gin-base/model/common"
+	"gin-base/internal/model/common"
 )
 
 type SysUser struct {

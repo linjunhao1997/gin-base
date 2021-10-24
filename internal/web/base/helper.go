@@ -2,7 +2,7 @@ package base
 
 import (
 	"fmt"
-	"gin-base/global"
+	"gin-base/internal/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -74,9 +74,8 @@ func (param *SearchParam) Validate(allowField AllowField) error {
 	return nil
 }
 
-func (param *SearchParam) Search(loadField ...string) *gorm.DB {
+func (param *SearchParam) Search(db *gorm.DB, loadField ...string) *gorm.DB {
 
-	db := global.DB
 	for _, e := range loadField {
 		db = db.Preload(e)
 	}
@@ -84,32 +83,17 @@ func (param *SearchParam) Search(loadField ...string) *gorm.DB {
 	return db
 }
 
-func (param *SearchParam) PreSearch(db *gorm.DB, loadField ...string) *gorm.DB {
-	db = db.Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param), SortFunc(param), PaginateFunc(param))
-	return db
-}
-
 func (param *SearchParam) CountTotal(data interface{}, db *gorm.DB) int {
-	var total int64
-	db.Debug().Model(data).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
-	return int(total)
-}
-
-func (param *SearchParam) PreCountTotal(db *gorm.DB, data interface{}) int {
 	var total int64
 	db.Model(data).Scopes(EqFunc(param), LikeFunc(param), RangeFunc(param)).Count(&total)
 	return int(total)
 }
 
-func (param *SearchParam) NewPagination(data interface{}, model interface{}, db *gorm.DB) Pagination {
+func (param *SearchParam) NewPagination(data interface{}, model interface{}) Pagination {
 	pagination := Pagination{}
-	if db == nil {
-		db = global.DB
-
-	}
 	pagination.Page = param.Page
 	pagination.PageSize = param.PageSize
-	pagination.Total = param.CountTotal(model, db)
+	pagination.Total = param.CountTotal(model, db.DB)
 	pagination.List = data
 	return pagination
 }

@@ -1,11 +1,11 @@
 package access
 
 import (
-	"gin-base/global"
-	model "gin-base/model/access"
-	"gin-base/pkg/base"
-	"gin-base/pkg/router"
-	service "gin-base/service/access"
+	model "gin-base/internal/model/access"
+	"gin-base/internal/pkg/db"
+	service "gin-base/internal/service/access"
+	"gin-base/internal/web/base"
+	"gin-base/internal/web/router"
 	"strconv"
 	"strings"
 )
@@ -18,7 +18,7 @@ type SysResourceController struct {
 	base.Controller
 }
 
-func (c *SysResourceController) HandlerConfig() {
+func (c *SysResourceController) InitController() {
 
 	router.V1.POST(SysResourcePath+"/_relatedSubResources", c.Wrap(c.RelatedSubResources))
 
@@ -49,12 +49,12 @@ func (c *SysResourceController) SearchSysResources(g *base.Gin) {
 	}
 
 	resources := make([]model.SysResource, 0)
-	db := global.DB.Table("sys_resource").Where("sys_resource.type = ?", model.MODULE).Preload(slice[3])
-	if err := param.PreSearch(db).Find(&resources).Error; err != nil {
+	db := db.DB.Table("sys_resource").Where("sys_resource.type = ?", model.MODULE).Preload(slice[3])
+	if err := param.Search(db).Find(&resources).Error; err != nil {
 		g.Abort(err)
 		return
 	}
-	g.RespSuccess(param.NewPagination(resources, &model.SysResource{}, db), "")
+	g.RespSuccess(param.NewPagination(resources, &model.SysResource{}), "")
 }
 
 func (c *SysResourceController) RelatedSubResources(g *base.Gin) {
@@ -132,7 +132,7 @@ func (c *SysResourceController) GetSysResource(g *base.Gin) {
 	}
 
 	resource := &model.SysResource{}
-	err := global.DB.Preload(model.SYSSUBRESOURCES).Where("id = ?", id).Take(resource).Error
+	err := db.DB.Preload(model.SYSSUBRESOURCES).Where("id = ?", id).Take(resource).Error
 	if err != nil {
 		g.Abort(err)
 		return

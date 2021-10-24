@@ -1,11 +1,12 @@
 package access
 
 import (
-	"gin-base/global"
-	model "gin-base/model/access"
-	"gin-base/pkg/base"
-	"gin-base/pkg/router"
-	service "gin-base/service/access"
+	"fmt"
+	model "gin-base/internal/model/access"
+	"gin-base/internal/pkg/db"
+	service "gin-base/internal/service/access"
+	"gin-base/internal/web/base"
+	"gin-base/internal/web/router"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +18,7 @@ type SysUserController struct {
 	base.Controller
 }
 
-func (c *SysUserController) HandlerConfig() {
+func (c *SysUserController) InitController() {
 
 	router.V1.GET(SysUserPath+"/:id", c.Wrap(c.GetSysUser))
 
@@ -114,16 +115,18 @@ func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 	}
 
 	users := make(model.SysUsers, 0)
-	if err := param.Search(model.SYSROLES).Find(&users).Error; err != nil {
+	if err := param.Search(db.DB, model.SYSROLES).Find(&users).Error; err != nil {
 		g.Abort(err)
 		return
 	}
 
-	g.RespSuccess(param.NewPagination(users, &model.SysUser{}, nil), "")
+	g.RespSuccess(param.NewPagination(users, &model.SysUser{}), "")
 }
 
 type UpdateSysUserParam struct {
-	Disable int8 `json:"disable" validate:"oneof=0 1"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Disable  int8   `json:"disable" validate:"oneof=0 1"`
 }
 
 func (c *SysUserController) UpdateSysUser(g *base.Gin) {
@@ -132,7 +135,7 @@ func (c *SysUserController) UpdateSysUser(g *base.Gin) {
 		return
 	}
 	user := &model.SysUser{}
-	err := global.DB.Where("id = ?", id).Take(user).Error
+	err := db.DB.Where("id = ?", id).Take(user).Error
 	if err != nil {
 		g.Abort(err)
 		return
@@ -142,8 +145,8 @@ func (c *SysUserController) UpdateSysUser(g *base.Gin) {
 	if ok := g.ValidateJson(body); !ok {
 		return
 	}
-
-	err = global.DB.Model(user).Select("Disable", "Disable").Updates(model.SysUser{Disable: body.Disable}).Error
+	fmt.Println(body)
+	err = db.DB.Model(user).Select("Disable", "Disable", "UserName", "Password").Updates(model.SysUser{Disable: body.Disable, UserName: body.Username, Password: body.Password}).Error
 	if err != nil {
 		g.Abort(err)
 		return
@@ -163,7 +166,7 @@ func (c *SysUserController) UpdateSysRoles(g *base.Gin) {
 		return
 	}
 	var user model.SysUser
-	if err := global.DB.Where("id = ?", body.UserId).Take(&user).Error; err != nil {
+	if err := db.DB.Where("id = ?", body.UserId).Take(&user).Error; err != nil {
 		g.Abort(err)
 		return
 	}
@@ -178,6 +181,11 @@ func (c *SysUserController) UpdateSysRoles(g *base.Gin) {
 
 func (c *SysUserController) GetSelf(g *base.Gin) {
 	user := g.EnsureSysUser()
+
+	if user == nil {
+		g.RespUnauthorized("")
+		return
+	}
 
 	user, err := service.GetSysUser(user.ID)
 	if err != nil {

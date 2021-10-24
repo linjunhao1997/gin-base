@@ -1,26 +1,27 @@
 package service
 
 import (
-	"gin-base/global"
-	model "gin-base/model/access"
-	gutils "gin-base/utils"
+	model "gin-base/internal/model/access"
+	"gin-base/internal/pkg/db"
+	"gin-base/internal/pkg/rabc"
+	gutils "gin-base/internal/utils"
 	"strconv"
 )
 
 func GetSysUser(id int) (*model.SysUser, error) {
 	var user model.SysUser
-	if err := global.DB.Preload(model.SYSROLES+"."+model.SYSRESOURCES).Where("id = ?", id).Take(&user).Error; err != nil {
+	if err := db.DB.Preload(model.SYSROLES+"."+model.SYSRESOURCES).Where("id = ?", id).Take(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
 func DisableSysUser(id int) error {
-	return global.DB.Model(&model.SysUser{}).Where("id = ?", id).Update("disable", 1).Error
+	return db.DB.Model(&model.SysUser{}).Where("id = ?", id).Update("disable", 1).Error
 }
 
 func EnableSysUser(id int) error {
-	return global.DB.Model(&model.SysUser{}).Where("id = ?", id).Update("disable", 0).Error
+	return db.DB.Model(&model.SysUser{}).Where("id = ?", id).Update("disable", 0).Error
 }
 
 func RelatedUserRoles(userId int, roleIds ...int) error {
@@ -29,14 +30,14 @@ func RelatedUserRoles(userId int, roleIds ...int) error {
 	for i, roleId := range roleIds {
 		roles[i] = model.SysRole{ID: roleId}
 	}
-	return global.DB.Model(&user).Association("SysRoles").Replace(&roles)
+	return db.DB.Model(&user).Association("SysRoles").Replace(&roles)
 }
 
 func UpdatePGRoles(userId int, roleIds ...int) error {
 
 	roles := gutils.Int2String(roleIds)
 	user := strconv.Itoa(userId)
-	enforcer := global.Enforcer
+	enforcer := rabc.Enforcer
 	for _, roleId := range roleIds {
 		apis, err := GetApiResources(roleId)
 		if err != nil {

@@ -1,7 +1,7 @@
 package base
 
 import (
-	model "gin-base/model/access"
+	model "gin-base/internal/model/access"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -11,7 +11,10 @@ type Gin struct {
 }
 
 func (g *Gin) EnsureSysUser() *model.SysUser {
-	user, _ := g.C.Get("userInfo")
+	user, ok := g.C.Get("userInfo")
+	if !ok {
+		return nil
+	}
 	sysUser := user.(*model.SysUser)
 	return sysUser
 }

@@ -1,11 +1,11 @@
 package access
 
 import (
-	"gin-base/global"
-	model "gin-base/model/access"
-	"gin-base/pkg/base"
-	"gin-base/pkg/router"
-	service "gin-base/service/access"
+	model "gin-base/internal/model/access"
+	"gin-base/internal/pkg/db"
+	service "gin-base/internal/service/access"
+	"gin-base/internal/web/base"
+	"gin-base/internal/web/router"
 )
 
 const (
@@ -16,7 +16,7 @@ type SysRoleController struct {
 	base.Controller
 }
 
-func (c *SysRoleController) HandlerConfig() {
+func (c *SysRoleController) InitController() {
 	router.V1.POST(SysRolePath, c.Wrap(c.CreateSysRole))
 
 	router.V1.POST(SysRolePath+"/_search", c.Wrap(c.SearchSysRoles))
@@ -33,12 +33,12 @@ func (c *SysRoleController) SearchSysRoles(g *base.Gin) {
 	}
 
 	roles := make([]model.SysRole, 0)
-	if err := param.Search(model.SYSRESOURCES).Find(&roles).Error; err != nil {
+	if err := param.Search(db.DB, model.SYSRESOURCES).Find(&roles).Error; err != nil {
 		g.Abort(err)
 		return
 	}
 
-	g.RespSuccess(param.NewPagination(roles, &model.SysRole{}, nil), "")
+	g.RespSuccess(param.NewPagination(roles, &model.SysRole{}), "")
 }
 
 func (c *SysRoleController) GetSysRole(g *base.Gin) {
@@ -49,7 +49,7 @@ func (c *SysRoleController) GetSysRole(g *base.Gin) {
 	}
 
 	var role model.SysRole
-	if err := global.DB.Where("id = ?", id).Take(&role).Error; err != nil {
+	if err := db.DB.Where("id = ?", id).Take(&role).Error; err != nil {
 		g.Abort(err)
 		return
 	}

@@ -1,12 +1,11 @@
 package main
 
 import (
-	initialize "gin-base/init"
-	"gin-base/pkg/router"
+	initlization "gin-base/init"
+	"gin-base/internal/web/router"
 )
 
 func main() {
-	initialize.Load()
-	root := router.Root
-	root.Run() // listen and serve on 0.0.0.0:8080
+	initlization.Initialize()
+	router.Router.Run() // listen and serve on 0.0.0.0:8080
 }

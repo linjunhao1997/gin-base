@@ -1,18 +1,15 @@
-package initialize
+package db
 
 import (
-	"gin-base/global"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"time"
 )
 
-func MySqlGorm() {
-	global.DB = newDB()
-}
+var DB *gorm.DB
 
-func newDB() *gorm.DB {
+func NewDB() *gorm.DB {
 	dsn := "root:123456@tcp(192.168.100.100:3306)/gorabc?charset=utf8mb4&parseTime=True&loc=Local"
 	mysqlConfig := mysql.Config{
 		DSN:                       dsn,   // DSN data source name
