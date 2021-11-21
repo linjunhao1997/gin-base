@@ -31,7 +31,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 			if v, ok := data.(*model.SysUser); ok {
 				return jwt.MapClaims{
 					"id":       v.ID,
-					"username": v.UserName,
+					"username": v.Username,
 				}
 			}
 			return jwt.MapClaims{}
@@ -43,7 +43,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 				Model: common.Model{
 					ID: id,
 				},
-				UserName: claims["username"].(string),
+				Username: claims["username"].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -55,11 +55,11 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 			password := userInfo.Password
 
 			user := &model.SysUser{
-				UserName: username,
+				Username: username,
 				Password: password,
 			}
 
-			err := db.Model(user).Where("username = ? and password = ?", user.UserName, user.Password).Take(&user).Error
+			err := db.Model(user).Where("username = ? and password = ?", user.Username, user.Password).Take(&user).Error
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			} else {
@@ -116,7 +116,7 @@ func CheckAuthByEnforcer(enforcer *casbin.Enforcer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		g := base.Gin{C: c}
 		sysUser := g.EnsureSysUser()
-		if sysUser.UserName == "admin" {
+		if sysUser.Username == "admin" {
 			c.Next()
 			return
 		}

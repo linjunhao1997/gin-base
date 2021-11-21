@@ -10,9 +10,12 @@ import (
 
 func GetSysUser(id int) (*model.SysUser, error) {
 	var user model.SysUser
-	if err := db.DB.Preload(model.SYSROLES+"."+model.SYSRESOURCES).Where("id = ?", id).Take(&user).Error; err != nil {
+	user.ID = id
+
+	if err := db.DB.Debug().Preload("SysRoles.SysMenus", "enable = 1").Preload("SysRoles.SysPowers", "enable = 1").Find(&user).Error; err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 

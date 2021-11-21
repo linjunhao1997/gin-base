@@ -14,7 +14,7 @@ type Range struct {
 type SearchParam struct {
 	Page     int `json:"page"`
 	PageSize int `json:"pageSize"`
-	Filter   `json:"filter""`
+	Filter   `json:"filter"`
 	Sorter   map[string]int `json:"sorter"`
 }
 

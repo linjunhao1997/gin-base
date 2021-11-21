@@ -22,7 +22,7 @@ func NewDB() *gorm.DB {
 
 	gormConfig := gorm.Config{
 		NamingStrategy:                           schema.NamingStrategy{SingularTable: true},
-		DisableForeignKeyConstraintWhenMigrating: false,
+		DisableForeignKeyConstraintWhenMigrating: true,
 	}
 
 	db, err := gorm.Open(mysql.New(mysqlConfig), &gormConfig)
@@ -41,7 +41,6 @@ func NewDB() *gorm.DB {
 	// SetConnMaxLifetime 设置了连接可复用的最大时间。
 	native.SetConnMaxLifetime(time.Hour)
 
-	// db.Migrator()
 	return db
 
 }

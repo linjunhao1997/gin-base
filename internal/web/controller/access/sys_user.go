@@ -30,6 +30,8 @@ func (c *SysUserController) InitController() {
 
 	router.V1.GET(SysUserPath+"/self", c.Wrap(c.GetSelf))
 
+	router.V1.DELETE(SysUserPath+"/:id", c.Wrap(c.DeleteSysUser))
+
 	//router.V1.PATCH(SysUserPath+"/:id", handler.ResetPassword)
 }
 
@@ -109,7 +111,7 @@ func (c *SysUserController) ResetPassword(g *base.Gin) {
 
 func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 
-	param := g.ValidateAllowField(base.NewAllowField("id", "username"))
+	param := g.ValidateAllowField(base.NewAllowField("id", "username", "phone", "email", "enable"))
 	if param == nil {
 		return
 	}
@@ -126,7 +128,9 @@ func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 type UpdateSysUserParam struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Disable  int8   `json:"disable" validate:"oneof=0 1"`
+	Phone    string `json:"phone"`
+	Email    string `json:"Email"`
+	Enable   int8   `json:"conditions" validate:"oneof=0 1"`
 }
 
 func (c *SysUserController) UpdateSysUser(g *base.Gin) {
@@ -146,7 +150,7 @@ func (c *SysUserController) UpdateSysUser(g *base.Gin) {
 		return
 	}
 	fmt.Println(body)
-	err = db.DB.Model(user).Select("Disable", "Disable", "UserName", "Password").Updates(model.SysUser{Disable: body.Disable, UserName: body.Username, Password: body.Password}).Error
+	err = db.DB.Model(user).Select("Enable", "Enable", "Username", "Password").Updates(model.SysUser{Enable: body.Enable, Username: body.Username, Password: body.Password}).Error
 	if err != nil {
 		g.Abort(err)
 		return
@@ -193,5 +197,22 @@ func (c *SysUserController) GetSelf(g *base.Gin) {
 		return
 	}
 
+	g.RespSuccess(user, "")
+}
+
+func (c *SysUserController) DeleteSysUser(g *base.Gin) {
+	id, ok := g.ValidateId()
+	if !ok {
+		return
+	}
+
+	user := &model.SysUser{}
+	user.ID = id
+	// 需要移到service里，删除操作涉及多个表
+	err := user.Delete()
+	if err != nil {
+		g.Abort(err)
+		return
+	}
 	g.RespSuccess(user, "")
 }

@@ -24,16 +24,26 @@ func (c *SysRoleController) InitController() {
 	router.V1.GET(SysRolePath+"/:id", c.Wrap(c.GetSysRole))
 
 	router.V1.POST(SysRolePath+"/_relatedRoleResources", c.Wrap(c.RelatedRoleResources))
+
+	router.V1.GET(SysRolePath, c.Wrap(func(g *base.Gin) {
+		roles := make([]*model.SysRole, 0)
+		if err := db.DB.Preload(model.SYSMENUS, "enable = 1").Preload(model.SYSAPIS, "enable = 1").Preload(model.SYSMENUS+"."+model.SYSPOWERS, "enable = 1").Find(&roles).Error; err != nil {
+			g.Abort(err)
+			return
+		}
+		g.RespSuccess(roles, "")
+	}))
+
 }
 
 func (c *SysRoleController) SearchSysRoles(g *base.Gin) {
-	param := g.ValidateAllowField(base.NewAllowField("id", "name"))
+	param := g.ValidateAllowField(base.NewAllowField("id", "name", "enable"))
 	if param == nil {
 		return
 	}
 
 	roles := make([]model.SysRole, 0)
-	if err := param.Search(db.DB, model.SYSRESOURCES).Find(&roles).Error; err != nil {
+	if err := param.Search(db.DB, model.SYSMENUS+"."+model.SYSPOWERS, model.SYSPOWERS, model.SYSAPIS).Find(&roles).Error; err != nil {
 		g.Abort(err)
 		return
 	}
@@ -54,13 +64,13 @@ func (c *SysRoleController) GetSysRole(g *base.Gin) {
 		return
 	}
 
-	sysResource, err := service.GetSysResources(id)
+	/*sysResource, err := service.GetSysResources(id)
 	if err != nil {
 		g.Abort(err)
 		return
-	}
+	}*/
 
-	role.SysResources = sysResource
+	//role.SysResources = sysResource
 	g.RespSuccess(role, "")
 }
 

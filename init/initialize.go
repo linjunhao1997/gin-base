@@ -11,6 +11,10 @@ import (
 
 func Initialize() {
 	db.DB = db.NewDB()
+	/*err := db.DB.AutoMigrate(&model.SysUser{}, &model.SysRole{}, &model.SysMenu{}, &model.SysBlock{}, &model.SysApi{})
+	if err != nil {
+		panic(err)
+	}*/
 	rabc.Enforcer = rabc.NewCasbinEnforcer(db.DB)
 	mid.JwtMiddleware = mid.NewJwtMiddleware(db.DB)
 
@@ -22,6 +26,8 @@ func Initialize() {
 		&access.SysUserController{},
 		&access.SysRoleController{},
 		&access.SysResourceController{},
+		&access.SysMenuController{},
+		&access.SysApiController{},
 		&public.AuthController{},
 	)
 
