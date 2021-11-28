@@ -11,6 +11,8 @@ type SysApi struct {
 	Enable uint8  `gorm:"column:enable" json:"conditions"`
 }
 
+type SysApis []*SysApi
+
 func (api *SysApi) LoadById() error {
 	err := db.DB.Find(api, "id = ?", api.ID).Error
 	if err != nil {

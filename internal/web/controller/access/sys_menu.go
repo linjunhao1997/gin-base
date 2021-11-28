@@ -5,10 +5,7 @@ import (
 	"gin-base/internal/pkg/db"
 	"gin-base/internal/web/base"
 	"gin-base/internal/web/router"
-)
-
-const (
-	SysMenuPath = "/sysMenus"
+	"gorm.io/gorm"
 )
 
 type SysMenuController struct {
@@ -16,17 +13,80 @@ type SysMenuController struct {
 }
 
 func (c *SysMenuController) InitController() {
-	router.V1.GET(SysMenuPath, c.Wrap(c.ListEnableMenus))
 
-	router.V1.GET(SysMenuPath+"/:id", c.Wrap(func(g *base.Gin) {
+	// create
+	router.V1.POST("/sysMenus", c.Wrap(func(g *base.Gin) {
+		menu := &model.SysMenu{}
+		if ok := g.ValidateJson(menu); !ok {
+			return
+		}
+
+		if err := db.DB.Create(menu).Error; err != nil {
+			g.Abort(err)
+			return
+		}
+
+		g.RespSuccess(menu, "创建成功")
+	}))
+
+	// delete
+	router.V1.DELETE("/sysMenus/:id", c.Wrap(func(g *base.Gin) {
 		id, ok := g.ValidateId()
 		if !ok {
 			return
 		}
 
-		menu := &model.SysMenu{}
+		db.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Delete(&model.SysMenu{ID: id}).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Exec("DELETE FROM sys_role_r_sys_menu WHERE sys_menu_id = ?", id).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		g.RespSuccess(nil, "删除成功")
+	}))
+
+	// update
+	router.V1.PATCH("/sysMenus/:id", c.Wrap(func(g *base.Gin) {
+
+		id, ok := g.ValidateId()
+		if !ok {
+			return
+		}
+
+		menu := &model.SysMenu{ID: id}
+		err := db.DB.Model(menu).Take(menu).Error
+		if err != nil {
+			g.Abort(err)
+			return
+		}
+
+		if ok := g.ValidateJson(menu); !ok {
+			return
+		}
 		menu.ID = id
 
+		if err := db.DB.Save(menu).Error; err != nil {
+			g.Abort(err)
+			return
+		}
+
+		g.RespSuccess(menu, "更新成功")
+	}))
+
+	// retrieve
+	router.V1.GET("/sysMenus/:id", c.Wrap(func(g *base.Gin) {
+		id, ok := g.ValidateId()
+		if !ok {
+			return
+		}
+
+		menu := &model.SysMenu{ID: id}
 		if err := db.DB.Debug().Preload(model.SYSPOWERS, "enable = 1").Find(&menu).Error; err != nil {
 			g.Abort(err)
 			return
@@ -34,28 +94,31 @@ func (c *SysMenuController) InitController() {
 
 		g.RespSuccess(menu, "")
 	}))
-	router.V1.GET(SysMenuPath+"/:id/sysPowers", c.Wrap(func(g *base.Gin) {
+
+	router.V1.GET("/sysMenus/:id/sysPowers", c.Wrap(func(g *base.Gin) {
 		id, ok := g.ValidateId()
 		if !ok {
 			return
 		}
 
-		menu := &model.SysMenu{}
-		menu.ID = id
-
-		if err := db.DB.Debug().Preload(model.SYSPOWERS, "enable = 1").Find(&menu).Error; err != nil {
+		menu := &model.SysMenu{ID: id}
+		if err := db.DB.Preload(model.SYSPOWERS + "." + model.SYSROLES).Find(&menu).Error; err != nil {
 			g.Abort(err)
 			return
 		}
 
 		g.RespSuccess(menu.SysPowers, "")
 	}))
+
+	// all
+	router.V1.GET("/sysMenus", c.Wrap(c.ListEnableMenus))
+
 }
 
 func (c *SysMenuController) ListEnableMenus(g *base.Gin) {
 
 	menus := make([]model.SysMenu, 0)
-	if err := db.DB.Preload(model.SYSPOWERS, "enable = 1").Find(&menus).Error; err != nil {
+	if err := db.DB.Preload(model.SYSPOWERS, "enable = ?", 1).Where("enable = ?", 1).Find(&menus).Error; err != nil {
 		g.Abort(err)
 		return
 	}

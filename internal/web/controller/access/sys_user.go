@@ -1,17 +1,16 @@
 package access
 
 import (
-	"fmt"
 	model "gin-base/internal/model/access"
 	"gin-base/internal/pkg/db"
+	"gin-base/internal/pkg/rabc"
 	service "gin-base/internal/service/access"
+	gutils "gin-base/internal/utils"
 	"gin-base/internal/web/base"
+	"gin-base/internal/web/param/access"
 	"gin-base/internal/web/router"
 	"github.com/gin-gonic/gin"
-)
-
-const (
-	SysUserPath = "/sysUsers"
+	"gorm.io/gorm"
 )
 
 type SysUserController struct {
@@ -20,19 +19,78 @@ type SysUserController struct {
 
 func (c *SysUserController) InitController() {
 
-	router.V1.GET(SysUserPath+"/:id", c.Wrap(c.GetSysUser))
+	router.V1.GET("/sysUsers/:id", c.Wrap(c.GetSysUser))
 
-	router.V1.POST(SysUserPath+"/_search", c.Wrap(c.SearchSysUsers))
+	router.V1.POST("/sysUsers/_search", c.Wrap(c.SearchSysUsers))
 
-	router.V1.POST(SysUserPath+"/_updateRoles", c.Wrap(c.UpdateSysRoles))
+	router.V1.PATCH("/sysUsers/:id", c.Wrap(c.UpdateSysUser))
 
-	router.V1.PATCH(SysUserPath+"/:id", c.Wrap(c.UpdateSysUser))
+	router.V1.GET("/sysUsers/self", c.Wrap(c.GetSelf))
 
-	router.V1.GET(SysUserPath+"/self", c.Wrap(c.GetSelf))
+	router.V1.POST("/sysUsers", c.Wrap(func(g *base.Gin) {
 
-	router.V1.DELETE(SysUserPath+"/:id", c.Wrap(c.DeleteSysUser))
+		user := &model.SysUser{}
 
-	//router.V1.PATCH(SysUserPath+"/:id", handler.ResetPassword)
+		if ok := g.ValidateJson(user); !ok {
+			return
+		}
+
+		user.SysRoles = access.RoleIdsToSysRoles(user.RoleIds)
+
+		err := db.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Save(user).Error; err != nil {
+				return err
+			}
+
+			if len(user.RoleIds) > 0 {
+				enforcer := rabc.Enforcer
+				_, err := enforcer.AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(user.RoleIds))
+				if err != nil {
+					return err
+				}
+
+				return enforcer.SavePolicy()
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			g.Abort(err)
+			return
+		}
+
+		g.RespSuccess(nil, "创建成功")
+
+	}))
+
+	router.V1.DELETE("/sysUsers/:id", c.Wrap(func(g *base.Gin) {
+		id, ok := g.ValidateId()
+		if !ok {
+			return
+		}
+
+		db.DB.Transaction(func(tx *gorm.DB) error {
+			user := &model.SysUser{ID: id}
+
+			if err := tx.Model(user).Association(model.SYSROLES).Clear(); err != nil {
+				return err
+			}
+
+			if err := tx.Delete(user).Error; err != nil {
+				return err
+			}
+
+			enforcer := rabc.Enforcer
+			if _, err := enforcer.DeleteRolesForUser(gutils.Int2String(user.ID)); err != nil {
+				return err
+			}
+
+			return enforcer.SavePolicy()
+		})
+
+		g.RespSuccess(nil, "删除成功")
+	}))
 }
 
 func (c *SysUserController) GetSysUser(g *base.Gin) {
@@ -49,38 +107,6 @@ func (c *SysUserController) GetSysUser(g *base.Gin) {
 	}
 
 	g.RespSuccess(user, "")
-}
-
-func (c *SysUserController) EnableSysUser(g *base.Gin) {
-
-	id, ok := g.ValidateId()
-	if !ok {
-		return
-	}
-
-	err := service.EnableSysUser(id)
-	if err != nil {
-		g.Abort(err)
-		return
-	}
-
-	g.RespSuccess(nil, "启用成功")
-}
-
-func (c *SysUserController) DisableSysUser(g *base.Gin) {
-
-	id, ok := g.ValidateId()
-	if !ok {
-		return
-	}
-
-	err := service.DisableSysUser(id)
-	if err != nil {
-		g.Abort(err)
-		return
-	}
-
-	g.RespSuccess(nil, "禁用成功")
 }
 
 type ResetPasswordParam struct {
@@ -125,62 +151,52 @@ func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 	g.RespSuccess(param.NewPagination(users, &model.SysUser{}), "")
 }
 
-type UpdateSysUserParam struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
-	Email    string `json:"Email"`
-	Enable   int8   `json:"conditions" validate:"oneof=0 1"`
-}
-
 func (c *SysUserController) UpdateSysUser(g *base.Gin) {
 	id, ok := g.ValidateId()
 	if !ok {
 		return
 	}
-	user := &model.SysUser{}
-	err := db.DB.Where("id = ?", id).Take(user).Error
+
+	user := &model.SysUser{ID: id}
+	err := db.DB.Model(user).Take(user).Error
 	if err != nil {
 		g.Abort(err)
 		return
 	}
 
-	body := &UpdateSysUserParam{}
-	if ok := g.ValidateJson(body); !ok {
+	if ok := g.ValidateJson(user); !ok {
 		return
 	}
-	fmt.Println(body)
-	err = db.DB.Model(user).Select("Enable", "Enable", "Username", "Password").Updates(model.SysUser{Enable: body.Enable, Username: body.Username, Password: body.Password}).Error
+
+	err = db.DB.Transaction(func(tx *gorm.DB) error {
+		if user.RoleIds != nil {
+			if err := tx.Model(user).Association(model.SYSROLES).Replace(access.RoleIdsToSysRoles(user.RoleIds)); err != nil {
+				return err
+			}
+
+			enforcer := rabc.Enforcer
+			// update g
+			_, err := enforcer.DeleteRolesForUser(gutils.Int2String(user.ID))
+			if err != nil {
+				return err
+			}
+			_, err = enforcer.AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(user.RoleIds))
+			if err != nil {
+				return err
+			}
+
+			return enforcer.SavePolicy()
+		}
+
+		return tx.Omit(model.SYSROLES).Save(user).Error
+	})
+
 	if err != nil {
 		g.Abort(err)
 		return
 	}
 
 	g.RespSuccess(user, "更新成功")
-}
-
-type UpdateSysRolesParam struct {
-	UserId  int   `json:"userId"`
-	RoleIds []int `json:"roleIds"`
-}
-
-func (c *SysUserController) UpdateSysRoles(g *base.Gin) {
-	var body UpdateSysRolesParam
-	if ok := g.ValidateJson(&body); !ok {
-		return
-	}
-	var user model.SysUser
-	if err := db.DB.Where("id = ?", body.UserId).Take(&user).Error; err != nil {
-		g.Abort(err)
-		return
-	}
-
-	err := service.UpdatePGRoles(user.ID, 1)
-	if err != nil {
-		g.Abort(err)
-		return
-	}
-	g.RespSuccess(nil, "更新成功")
 }
 
 func (c *SysUserController) GetSelf(g *base.Gin) {

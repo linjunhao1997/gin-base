@@ -25,8 +25,8 @@ func Initialize() {
 	controllers = append(controllers,
 		&access.SysUserController{},
 		&access.SysRoleController{},
-		&access.SysResourceController{},
 		&access.SysMenuController{},
+		&access.SysPowerController{},
 		&access.SysApiController{},
 		&public.AuthController{},
 	)

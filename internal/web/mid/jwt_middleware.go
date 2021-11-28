@@ -3,7 +3,6 @@ package mid
 import (
 	"fmt"
 	model "gin-base/internal/model/access"
-	"gin-base/internal/model/common"
 	"gin-base/internal/web/base"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/casbin/casbin/v2"
@@ -40,9 +39,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 			claims := jwt.ExtractClaims(c)
 			id := int(claims["id"].(float64))
 			return &model.SysUser{
-				Model: common.Model{
-					ID: id,
-				},
+				ID:       id,
 				Username: claims["username"].(string),
 			}
 		},
