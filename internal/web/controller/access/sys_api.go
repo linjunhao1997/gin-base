@@ -98,6 +98,8 @@ func (c *SysApiController) InitController() {
 				}
 
 				return enforcer.SavePolicy()
+			} else if api.Enable > 0 {
+				//todo SavePolicy()不知道是否要LoadPolicy, 增加enable字段权限校验
 			}
 
 			return nil
@@ -140,7 +142,7 @@ func (c *SysApiController) InitController() {
 	// all
 	router.V1.GET("/sysApis", c.Wrap(func(g *base.Gin) {
 		apis := make([]*model.SysApi, 0)
-		if err := db.DB.Find(&apis, "enable = 1").Error; err != nil {
+		if err := db.DB.Find(&apis).Error; err != nil {
 			g.Abort(err)
 			return
 		}

@@ -47,7 +47,7 @@ func (c *SysRoleController) InitController() {
 
 				rules := make([][]string, 0)
 				for _, api := range role.SysApis {
-					rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method})
+					rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Enable)})
 				}
 				_, err := enforcer.AddNamedPolicies("p", rules)
 				if err != nil {
@@ -133,7 +133,7 @@ func (c *SysRoleController) InitController() {
 			rules := make([][]string, 0)
 			for _, api := range role.SysApis {
 
-				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method})
+				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Enable)})
 			}
 			_, err = enforcer.AddNamedPolicies("p", rules)
 			if err != nil {
