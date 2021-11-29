@@ -98,7 +98,7 @@ func (c *SysRoleController) InitController() {
 		if ok := g.ValidateJson(role); !ok {
 			return
 		}
-
+		role.ID = id
 		err = db.DB.Transaction(func(tx *gorm.DB) error {
 			if role.MenuIds != nil {
 				if err := tx.Model(role).Association(model.SYSMENUS).Replace(access.MenuIdsToSysMenus(role.MenuIds)); err != nil {

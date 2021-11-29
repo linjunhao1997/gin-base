@@ -21,6 +21,7 @@ func (c *SysPowerController) InitController() {
 			return
 		}
 
+		power.SysRoles = access.RoleIdsToSysRoles(power.RoleIds)
 		if err := db.DB.Create(power).Error; err != nil {
 			g.Abort(err)
 			return

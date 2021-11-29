@@ -3,6 +3,7 @@ package access
 import (
 	model "gin-base/internal/model/access"
 	"gin-base/internal/pkg/db"
+	"gin-base/internal/pkg/rabc"
 	"gin-base/internal/web/base"
 	"gin-base/internal/web/router"
 	"gorm.io/gorm"
@@ -39,7 +40,14 @@ func (c *SysApiController) InitController() {
 			return
 		}
 
+		api := &model.SysApi{ID: id}
+		if err := api.LoadById(); err != nil {
+			g.Abort(err)
+			return
+		}
+
 		db.DB.Transaction(func(tx *gorm.DB) error {
+
 			if err := tx.Delete(&model.SysApi{ID: id}).Error; err != nil {
 				return err
 			}
@@ -48,10 +56,54 @@ func (c *SysApiController) InitController() {
 				return err
 			}
 
-			return nil
+			enforcer := rabc.Enforcer
+			if _, err := enforcer.DeletePermission(api.Url, api.Method); err != nil {
+				return err
+			}
+
+			return enforcer.SavePolicy()
 		})
 
 		g.RespSuccess(nil, "删除成功")
+	}))
+
+	// update
+	router.V1.PATCH("/sysApis/:id", c.Wrap(func(g *base.Gin) {
+		id, ok := g.ValidateId()
+		if !ok {
+			return
+		}
+
+		api := &model.SysApi{ID: id}
+		if err := api.LoadById(); err != nil {
+			g.Abort(err)
+			return
+		}
+
+		if ok := g.ValidateJson(api); !ok {
+			return
+		}
+		api.ID = id
+
+		db.DB.Transaction(func(tx *gorm.DB) error {
+
+			if err := db.DB.Save(api).Error; err != nil {
+				return err
+			}
+
+			if api.Enable < 0 {
+				enforcer := rabc.Enforcer
+				if _, err := enforcer.DeletePermission(api.Url, api.Method); err != nil {
+					return err
+				}
+
+				return enforcer.SavePolicy()
+			}
+
+			return nil
+		})
+
+		g.RespSuccess(api, "修改成功")
 	}))
 
 	// retrieve

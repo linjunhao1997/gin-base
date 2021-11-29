@@ -8,7 +8,7 @@ type SysApi struct {
 	Desc   string `gorm:"column:description" json:"desc"`
 	Url    string `gorm:"column:url" json:"url"`
 	Method string `gorm:"column:method" json:"method"`
-	Enable uint8  `gorm:"column:enable" json:"conditions"`
+	Enable int    `gorm:"column:enable" json:"conditions"`
 }
 
 type SysApis []*SysApi
