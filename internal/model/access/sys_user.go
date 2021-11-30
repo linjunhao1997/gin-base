@@ -8,13 +8,14 @@ import (
 )
 
 type SysUser struct {
-	ID       int        `gorm:"column:id;primary_key" json:"id"`
-	Username string     `gorm:"column:username" json:"username"`
-	Password string     `gorm:"column:password" json:"password"`
-	Phone    string     `gorm:"column:phone" json:"phone"`
-	Email    string     `gorm:"column:email" json:"email"`
-	Enable   int8       `gorm:"column:enable" json:"conditions"`
-	SysRoles []*SysRole `gorm:"many2many:sys_user_r_sys_role" json:"roles"`
+	ID        int            `gorm:"column:id;primary_key" json:"id"`
+	Username  string         `gorm:"column:username" json:"username"`
+	Password  string         `gorm:"column:password" json:"password"`
+	Phone     string         `gorm:"column:phone" json:"phone"`
+	Email     string         `gorm:"column:email" json:"email"`
+	Enable    int8           `gorm:"column:enable" json:"conditions"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+	SysRoles  []*SysRole     `gorm:"many2many:sys_user_r_sys_role" json:"roles"`
 
 	RoleIds []int `gorm:"-" json:"roleIds"`
 }

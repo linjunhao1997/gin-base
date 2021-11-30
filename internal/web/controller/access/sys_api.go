@@ -91,17 +91,32 @@ func (c *SysApiController) InitController() {
 				return err
 			}
 
-			if api.Enable < 0 {
+			if api.Enable != 0 {
 				enforcer := rabc.Enforcer
-				if _, err := enforcer.DeletePermission(api.Url, api.Method); err != nil {
-					return err
+				oldPolicies := enforcer.GetFilteredPolicy(1, api.Url, api.Method)
+				newPolicies := make([][]string, 0)
+				for _, oldPolicy := range oldPolicies {
+					newPolicy := make([]string, 0)
+					for _, value := range oldPolicy {
+						newPolicy = append(newPolicy, value)
+					}
+					newPolicies = append(newPolicies, newPolicy)
 				}
 
+				if api.Enable < 0 {
+					for _, policy := range newPolicies {
+						policy[len(policy)-1] = "-1"
+					}
+				} else if api.Enable > 0 {
+					for _, policy := range newPolicies {
+						policy[len(policy)-1] = "1"
+					}
+				}
+				if _, err := enforcer.UpdatePolicies(oldPolicies, newPolicies); err != nil {
+					return err
+				}
 				return enforcer.SavePolicy()
-			} else if api.Enable > 0 {
-				//todo SavePolicy()不知道是否要LoadPolicy, 增加enable字段权限校验
 			}
-
 			return nil
 		})
 
