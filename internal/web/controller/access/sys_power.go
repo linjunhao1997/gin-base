@@ -17,7 +17,7 @@ func (c *SysPowerController) InitController() {
 	// create
 	router.V1.POST("/sysPowers", c.Wrap(func(g *base.Gin) {
 		power := &model.SysPower{}
-		if ok := g.ValidateJson(power); !ok {
+		if ok := g.ValidateStruct(power); !ok {
 			return
 		}
 
@@ -67,7 +67,7 @@ func (c *SysPowerController) InitController() {
 			return
 		}
 
-		if ok := g.ValidateJson(power); !ok {
+		if ok := g.ValidateStruct(power); !ok {
 			return
 		}
 		power.ID = id

@@ -21,7 +21,7 @@ func (c *SysApiController) InitController() {
 	// create
 	router.V1.POST("/sysApis", c.Wrap(func(g *base.Gin) {
 		api := &model.SysApi{}
-		if ok := g.ValidateJson(api); !ok {
+		if ok := g.ValidateStruct(api); !ok {
 			return
 		}
 
@@ -80,7 +80,7 @@ func (c *SysApiController) InitController() {
 			return
 		}
 
-		if ok := g.ValidateJson(api); !ok {
+		if ok := g.ValidateStruct(api); !ok {
 			return
 		}
 		api.ID = id

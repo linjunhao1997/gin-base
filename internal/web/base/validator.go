@@ -31,7 +31,7 @@ func (g *Gin) ValidateId() (int, bool) {
 	return id, true
 }
 
-func (g *Gin) ValidateJson(body interface{}) bool {
+func (g *Gin) ValidateStruct(body interface{}) bool {
 	err := g.C.ShouldBindJSON(body)
 	if err != nil {
 		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
@@ -58,7 +58,7 @@ func (g *Gin) ValidateJson(body interface{}) bool {
 func (g *Gin) ValidateAllowField(field AllowField) *SearchParam {
 
 	var body SearchParam
-	ok := g.ValidateJson(&body)
+	ok := g.ValidateStruct(&body)
 	if !ok {
 		return nil
 	}

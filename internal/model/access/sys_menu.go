@@ -2,6 +2,7 @@ package model
 
 import "gin-base/internal/pkg/db"
 
+// 0, 1, 2
 type SysMenu struct {
 	ID        int         `gorm:"column:id;primary_key" json:"id"`
 	Title     string      `gorm:"column:title" json:"title"`
@@ -9,6 +10,7 @@ type SysMenu struct {
 	Url       string      `gorm:"column:url" json:"url"`
 	ParentId  int         `gorm:"column:parent_id" json:"parent"`
 	Desc      string      `gorm:"column:description" json:"desc"`
+	Sorts     int         `gorm:"column:sort" json:"sorts"`
 	Enable    int         `gorm:"column:enable" json:"conditions"`
 	SysPowers []*SysPower `json:"powers"`
 }

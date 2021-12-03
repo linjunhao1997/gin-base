@@ -31,7 +31,7 @@ func (c *SysUserController) InitController() {
 
 		user := &model.SysUser{}
 
-		if ok := g.ValidateJson(user); !ok {
+		if ok := g.ValidateStruct(user); !ok {
 			return
 		}
 
@@ -124,7 +124,7 @@ func (c *SysUserController) ResetPassword(g *base.Gin) {
 	}
 
 	body := ResetPasswordParam{}
-	if ok := g.ValidateJson(&body); !ok {
+	if ok := g.ValidateStruct(&body); !ok {
 		return
 	}
 	body.userId = id
@@ -164,7 +164,7 @@ func (c *SysUserController) UpdateSysUser(g *base.Gin) {
 		return
 	}
 
-	if ok := g.ValidateJson(user); !ok {
+	if ok := g.ValidateStruct(user); !ok {
 		return
 	}
 

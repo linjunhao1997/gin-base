@@ -17,7 +17,7 @@ func (c *SysMenuController) InitController() {
 	// create
 	router.V1.POST("/sysMenus", c.Wrap(func(g *base.Gin) {
 		menu := &model.SysMenu{}
-		if ok := g.ValidateJson(menu); !ok {
+		if ok := g.ValidateStruct(menu); !ok {
 			return
 		}
 
@@ -66,7 +66,7 @@ func (c *SysMenuController) InitController() {
 			return
 		}
 
-		if ok := g.ValidateJson(menu); !ok {
+		if ok := g.ValidateStruct(menu); !ok {
 			return
 		}
 		menu.ID = id
@@ -113,6 +113,24 @@ func (c *SysMenuController) InitController() {
 	// all
 	router.V1.GET("/sysMenus", c.Wrap(c.ListEnableMenus))
 
+	// sort
+	router.V1.POST("/sysMenus/_sort", c.Wrap(func(g *base.Gin) {
+		var ids []int
+		if err := g.C.ShouldBindJSON(&ids); err != nil {
+			g.Abort(err)
+			return
+		}
+		db.DB.Transaction(func(tx *gorm.DB) error {
+			for i := range ids {
+				if err := tx.Model(model.SysMenu{}).Where("id = ?", ids[i]).Update("sort", i).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+
+		g.RespSuccess(nil, "操作成功")
+	}))
 }
 
 func (c *SysMenuController) ListEnableMenus(g *base.Gin) {

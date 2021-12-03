@@ -19,7 +19,7 @@ type SysRoleController struct {
 func (c *SysRoleController) InitController() {
 	router.V1.POST("/sysRoles", c.Wrap(func(g *base.Gin) {
 		role := &model.SysRole{}
-		if ok := g.ValidateJson(role); !ok {
+		if ok := g.ValidateStruct(role); !ok {
 			return
 		}
 
@@ -95,7 +95,7 @@ func (c *SysRoleController) InitController() {
 			return
 		}
 
-		if ok := g.ValidateJson(role); !ok {
+		if ok := g.ValidateStruct(role); !ok {
 			return
 		}
 		role.ID = id
