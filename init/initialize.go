@@ -35,4 +35,17 @@ func Initialize() {
 		c.InitController()
 	}
 
+	// etcd
+	/*etcdv3.Cli = etcdv3.NewClient(
+		etcdv3.WithEndpoints([]string{"192.168.31.117:2379"}),
+		etcdv3.WithDialTimeout(5 * time.Second),
+	)
+	response, err := etcdv3.Cli.Get(context.Background(), "hello")
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, ev := range response.Kvs {
+		fmt.Printf("%s:%s\n", ev.Key, ev.Value)
+	}*/
+
 }

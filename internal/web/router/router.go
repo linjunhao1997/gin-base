@@ -1,6 +1,7 @@
 package router
 
 import (
+	"gin-base/internal/web/mid"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,8 @@ type Controller interface {
 }
 
 func NewRouter() *gin.Engine {
-	var root = gin.Default()
+	var root = gin.New()
+	root.Use(gin.Recovery(), mid.LogMiddleware())
 
 	V1 = root.Group("/api/v1")
 
