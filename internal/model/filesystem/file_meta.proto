@@ -1,0 +1,20 @@
+syntax = "proto3";
+option go_package="../../../pb;pb";
+
+package pb;
+
+service FileMetaService {
+    rpc Get(InBound) returns(OutBound) {}
+}
+message InBound {
+    repeated int64 ids = 1;
+}
+message FileMeta {
+    int64 id = 1;
+    string name = 2;
+    int64 size = 3;
+    string bucket = 4;
+}
+message OutBound {
+    repeated FileMeta list = 1;
+}

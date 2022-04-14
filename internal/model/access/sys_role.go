@@ -1,4 +1,4 @@
-package model
+package accessmodel
 
 import (
 	"gin-base/internal/pkg/db"
@@ -12,10 +12,20 @@ type SysRole struct {
 	SysMenus  []*SysMenu  `gorm:"many2many:sys_role_r_sys_menu" json:"menus"`
 	SysPowers []*SysPower `gorm:"many2many:sys_role_r_sys_power" json:"powers"`
 	SysApis   []*SysApi   `gorm:"many2many:sys_role_r_sys_api" json:"apis"`
+}
 
-	MenuIds  []int `gorm:"-" json:"menuIds"`
-	PowerIds []int `gorm:"-" json:"powerIds"`
-	ApiIds   []int `gorm:"-" json:"apiIds"`
+func (role *SysRole) GetResourceName() string {
+	return "sysRoles"
+}
+
+type SysRoleBody struct {
+	Name   *string `json:"title"`
+	Desc   *string `json:"desc"`
+	Enable *int    `json:"conditions"`
+
+	MenuIds  []int `json:"menuIds"`
+	PowerIds []int `json:"powerIds"`
+	ApiIds   []int `json:"apiIds"`
 }
 
 type SysRoles []*SysRole

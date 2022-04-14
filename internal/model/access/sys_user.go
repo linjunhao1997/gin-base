@@ -1,4 +1,4 @@
-package model
+package accessmodel
 
 import (
 	"gin-base/internal/pkg/db"
@@ -16,8 +16,19 @@ type SysUser struct {
 	Enable    int8           `gorm:"column:enable" json:"conditions"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 	SysRoles  []*SysRole     `gorm:"many2many:sys_user_r_sys_role" json:"roles"`
+}
 
-	RoleIds []int `gorm:"-" json:"roleIds"`
+func (user *SysUser) GetResourceName() string {
+	return "sysUsers"
+}
+
+type SysUserBody struct {
+	Username *string `json:"username"`
+	Password *string `json:"password"`
+	Phone    *string `json:"phone"`
+	Email    *string `json:"email"`
+	Enable   *int8   `json:"conditions"`
+	RoleIds  []int   `json:"roleIds"`
 }
 
 // must define

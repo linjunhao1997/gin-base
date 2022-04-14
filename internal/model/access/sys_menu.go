@@ -1,8 +1,5 @@
-package model
+package accessmodel
 
-import "gin-base/internal/pkg/db"
-
-// 0, 1, 2
 type SysMenu struct {
 	ID        int         `gorm:"column:id;primary_key" json:"id"`
 	Title     string      `gorm:"column:title" json:"title"`
@@ -15,22 +12,16 @@ type SysMenu struct {
 	SysPowers []*SysPower `json:"powers"`
 }
 
-func (menu *SysMenu) LoadById() error {
-	err := db.DB.Find(menu, "id = ?", menu.ID).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (menu *SysMenu) GetResourceName() string {
+	return "sysMenus"
 }
 
-func (menu *SysMenu) Create() error {
-	return db.DB.Create(menu).Error
-}
-
-func (menu *SysMenu) Update() error {
-	return db.DB.Save(menu).Error
-}
-
-func (menu *SysMenu) Delete() error {
-	return db.DB.Delete(menu, "id = ?", menu.ID).Error
+type SysMenuBody struct {
+	Title    *string `json:"title"`
+	Icon     *string `json:"icon"`
+	Url      *string `json:"url"`
+	ParentId *int    `json:"parent"`
+	Desc     *string `json:"desc"`
+	Sorts    *int    `json:"sorts"`
+	Enable   *int    `json:"conditions"`
 }

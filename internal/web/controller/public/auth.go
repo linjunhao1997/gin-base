@@ -1,4 +1,4 @@
-package public
+package publicapi
 
 import (
 	"gin-base/internal/web/base"

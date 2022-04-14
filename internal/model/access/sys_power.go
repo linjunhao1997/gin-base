@@ -1,6 +1,4 @@
-package model
-
-import "gin-base/internal/pkg/db"
+package accessmodel
 
 type SysPower struct {
 	ID        int        `gorm:"column:id;primary_key" json:"id"`
@@ -12,26 +10,18 @@ type SysPower struct {
 	SysMenuId int        `gorm:"column:sys_menu_id" json:"menuId"`
 	SysMenu   *SysMenu   `gorm:"foreignKey:SysMenuId" json:"menu"`
 	SysRoles  []*SysRole `gorm:"many2many:sys_role_r_sys_power" json:"roles"`
-
-	RoleIds []int `gorm:"-" json:"roleIds"`
 }
 
-func (power *SysPower) LoadById() error {
-	err := db.DB.Preload("SysMenu").Find(power, "id = ?", power.ID).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (power *SysPower) GetResourceName() string {
+	return "sysPowers"
 }
 
-func (power *SysPower) Create() error {
-	return db.DB.Create(power).Error
-}
-
-func (power *SysPower) Update() error {
-	return db.DB.Save(power).Error
-}
-
-func (power *SysPower) Delete() error {
-	return db.DB.Delete(power, "id = ?", power.ID).Error
+type SysPowerBody struct {
+	Title      *string `json:"title"`
+	Code       *string `json:"code"`
+	Tags       *string `json:"tags"`
+	Desc       *string `json:"desc"`
+	Enable     *int    `json:"conditions"`
+	SysMenuId  *int    `json:"menuId"`
+	SysRoleIds []int   `json:"roleIds"`
 }

@@ -17,5 +17,5 @@ func GetLogger(name string) *Logger {
 	})
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(log.InfoLevel)
-	return &Logger{name, logger.WithField("logging", name)}
+	return &Logger{name, logger.WithField("logger", name)}
 }

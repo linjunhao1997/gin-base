@@ -3,7 +3,7 @@ package base
 var MsgFlags = map[int]string{
 	SUCCESS:        "请求成功",
 	ERROR:          "请求失败",
-	INVALID_PARAMS: "请求参数错误",
+	INVALID_PARAMS: "请求参数不合法",
 	FORBIDDEN:      "禁止访问",
 	UNAUTHORIZED:   "认证失败",
 }

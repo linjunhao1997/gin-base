@@ -1,6 +1,4 @@
-package model
-
-import "gin-base/internal/pkg/db"
+package accessmodel
 
 type SysApi struct {
 	ID     int    `gorm:"column:id;primary_key" json:"id"`
@@ -11,24 +9,16 @@ type SysApi struct {
 	Enable int    `gorm:"column:enable" json:"conditions"`
 }
 
+func (api *SysApi) GetResourceName() string {
+	return "sysApis"
+}
+
 type SysApis []*SysApi
 
-func (api *SysApi) LoadById() error {
-	err := db.DB.Find(api, "id = ?", api.ID).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (api *SysApi) Create() error {
-	return db.DB.Create(api).Error
-}
-
-func (api *SysApi) Update() error {
-	return db.DB.Save(api).Error
-}
-
-func (api *SysApi) Delete() error {
-	return db.DB.Delete(api, "id = ?", api.ID).Error
+type SysApiBody struct {
+	Name   *string `json:"name"`
+	Desc   *string `json:"desc"`
+	Url    *string `json:"url"`
+	Method *string `json:"method" validate:"omitempty,oneof=POST GET"`
+	Enable *int    `json:"conditions"`
 }

@@ -1,96 +1,32 @@
-package access
+package accessapi
 
 import (
-	model "gin-base/internal/model/access"
+	accessmodel "gin-base/internal/model/access"
 	"gin-base/internal/pkg/db"
-	"gin-base/internal/pkg/rabc"
-	service "gin-base/internal/service/access"
-	gutils "gin-base/internal/utils"
+	accessservice "gin-base/internal/service/access"
 	"gin-base/internal/web/base"
-	"gin-base/internal/web/param/access"
 	"gin-base/internal/web/router"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type SysUserController struct {
-	base.Controller
+	*base.Controller
 }
 
 func (c *SysUserController) InitController() {
+	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysUser{})
 
-	router.V1.GET("/sysUsers/:id", c.Wrap(c.GetSysUser))
+	c.GetRouter().GET("/sysUsers/:id", c.Wrap(c.GetSysUser))
 
-	router.V1.POST("/sysUsers/_search", c.Wrap(c.SearchSysUsers))
+	c.GetRouter().POST("/sysUsers/_search", c.Wrap(c.SearchSysUsers))
 
-	router.V1.PATCH("/sysUsers/:id", c.Wrap(c.UpdateSysUser))
+	c.BuildUpdateApi(&accessmodel.SysUserBody{}, accessservice.UpdateUser)
 
-	router.V1.GET("/sysUsers/self", c.Wrap(c.GetSelf))
+	c.BuildCreateApi(&accessmodel.SysUserBody{}, accessservice.CreateUser)
 
-	router.V1.POST("/sysUsers", c.Wrap(func(g *base.Gin) {
+	c.BuildDeleteApi(accessservice.DeleteUser)
 
-		user := &model.SysUser{}
-
-		if ok := g.ValidateStruct(user); !ok {
-			return
-		}
-
-		user.SysRoles = access.RoleIdsToSysRoles(user.RoleIds)
-
-		err := db.DB.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Save(user).Error; err != nil {
-				return err
-			}
-
-			if len(user.RoleIds) > 0 {
-				enforcer := rabc.Enforcer
-				_, err := enforcer.AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(user.RoleIds))
-				if err != nil {
-					return err
-				}
-
-				return enforcer.SavePolicy()
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			g.Abort(err)
-			return
-		}
-
-		g.RespSuccess(nil, "创建成功")
-
-	}))
-
-	router.V1.DELETE("/sysUsers/:id", c.Wrap(func(g *base.Gin) {
-		id, ok := g.ValidateId()
-		if !ok {
-			return
-		}
-
-		db.DB.Transaction(func(tx *gorm.DB) error {
-			user := &model.SysUser{ID: id}
-
-			if err := tx.Model(user).Association(model.SYSROLES).Clear(); err != nil {
-				return err
-			}
-
-			if err := tx.Delete(user).Error; err != nil {
-				return err
-			}
-
-			enforcer := rabc.Enforcer
-			if _, err := enforcer.DeleteRolesForUser(gutils.Int2String(user.ID)); err != nil {
-				return err
-			}
-
-			return enforcer.SavePolicy()
-		})
-
-		g.RespSuccess(nil, "删除成功")
-	}))
+	c.GetRouter().GET("/sysUsers/self", c.Wrap(c.GetSelf))
 }
 
 func (c *SysUserController) GetSysUser(g *base.Gin) {
@@ -100,7 +36,7 @@ func (c *SysUserController) GetSysUser(g *base.Gin) {
 		return
 	}
 
-	user, err := service.GetSysUser(id)
+	user, err := accessservice.GetSysUser(id)
 	if err != nil {
 		g.Abort(err)
 		return
@@ -142,61 +78,13 @@ func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 		return
 	}
 
-	users := make(model.SysUsers, 0)
-	if err := param.Search(db.DB, model.SYSROLES).Find(&users).Error; err != nil {
+	users := make(accessmodel.SysUsers, 0)
+	if err := param.Search(db.DB, accessmodel.SYSROLES).Find(&users).Error; err != nil {
 		g.Abort(err)
 		return
 	}
 
-	g.RespSuccess(param.NewPagination(users, &model.SysUser{}), "")
-}
-
-func (c *SysUserController) UpdateSysUser(g *base.Gin) {
-	id, ok := g.ValidateId()
-	if !ok {
-		return
-	}
-
-	user := &model.SysUser{ID: id}
-	err := db.DB.Model(user).Take(user).Error
-	if err != nil {
-		g.Abort(err)
-		return
-	}
-
-	if ok := g.ValidateStruct(user); !ok {
-		return
-	}
-
-	err = db.DB.Transaction(func(tx *gorm.DB) error {
-		if user.RoleIds != nil {
-			if err := tx.Model(user).Association(model.SYSROLES).Replace(access.RoleIdsToSysRoles(user.RoleIds)); err != nil {
-				return err
-			}
-
-			enforcer := rabc.Enforcer
-			// update g
-			_, err := enforcer.DeleteRolesForUser(gutils.Int2String(user.ID))
-			if err != nil {
-				return err
-			}
-			_, err = enforcer.AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(user.RoleIds))
-			if err != nil {
-				return err
-			}
-
-			return enforcer.SavePolicy()
-		}
-
-		return tx.Omit(model.SYSROLES).Save(user).Error
-	})
-
-	if err != nil {
-		g.Abort(err)
-		return
-	}
-
-	g.RespSuccess(user, "更新成功")
+	g.RespSuccess(param.NewPagination(users, &accessmodel.SysUser{}), "")
 }
 
 func (c *SysUserController) GetSelf(g *base.Gin) {
@@ -207,8 +95,7 @@ func (c *SysUserController) GetSelf(g *base.Gin) {
 		return
 	}
 
-	user, err := service.GetSysUser(user.ID)
-	if err != nil {
+	if err := db.DB.Debug().Preload("SysRoles.SysMenus", "enable = 1").Preload("SysRoles.SysPowers", "enable = 1").Find(&user).Error; err != nil {
 		g.Abort(err)
 		return
 	}
@@ -222,7 +109,7 @@ func (c *SysUserController) DeleteSysUser(g *base.Gin) {
 		return
 	}
 
-	user := &model.SysUser{}
+	user := &accessmodel.SysUser{}
 	user.ID = id
 	// 需要移到service里，删除操作涉及多个表
 	err := user.Delete()

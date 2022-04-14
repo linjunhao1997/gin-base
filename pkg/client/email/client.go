@@ -12,7 +12,6 @@ var logger = logging.GetLogger("email")
 
 type Client struct {
 	*gomail.Dialer
-	logger *logging.Logger
 }
 
 func (cli *Client) NewClient(host, username, password string) {
@@ -37,7 +36,7 @@ func (cli *Client) SendHtml(to, cc, bcc []string, subject, body string) error {
 	msg.SetHeader("Bcc", bcc...)
 	msg.SetHeader("Subject", subject)
 	msg.SetBody("text/html", body)
-	cli.logger.WithFields(log.Fields{
+	logger.WithFields(log.Fields{
 		"From": cli.Username,
 		"To":   to,
 		"Cc":   cc,
@@ -45,7 +44,7 @@ func (cli *Client) SendHtml(to, cc, bcc []string, subject, body string) error {
 	})
 	err := cli.DialAndSend(msg)
 	if err != nil {
-		cli.logger.Warn(err)
+		logger.Warn(err)
 	}
 	return err
 }
@@ -62,7 +61,7 @@ func (cli *Client) SendHtmlWithAttachments(to, cc, bcc []string, subject, body s
 		settings := append(attachment.ReadSetting, FilenameSetting(attachment.Filename))
 		msg.Attach(attachment.Filename, settings...)
 	}
-	cli.logger.WithFields(log.Fields{
+	logger.WithFields(log.Fields{
 		"From":    cli.Username,
 		"To":      to,
 		"Cc":      cc,
@@ -71,7 +70,7 @@ func (cli *Client) SendHtmlWithAttachments(to, cc, bcc []string, subject, body s
 	})
 	err := cli.DialAndSend(msg)
 	if err != nil {
-		cli.logger.Warn(err)
+		logger.Warn(err)
 	}
 	return err
 }

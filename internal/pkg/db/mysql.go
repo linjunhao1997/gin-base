@@ -9,8 +9,9 @@ import (
 
 var DB *gorm.DB
 
-func NewDB() *gorm.DB {
-	dsn := "root:123456@tcp(192.168.100.100:3306)/gorabc?charset=utf8mb4&parseTime=True&loc=Local"
+var FileDB *gorm.DB
+
+func NewDB(dsn string) *gorm.DB {
 	mysqlConfig := mysql.Config{
 		DSN:                       dsn,   // DSN data source name
 		DefaultStringSize:         191,   // string 类型字段的默认长度

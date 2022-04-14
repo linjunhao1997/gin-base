@@ -1,122 +1,54 @@
-package access
+package accessapi
 
 import (
-	model "gin-base/internal/model/access"
+	accessmodel "gin-base/internal/model/access"
 	"gin-base/internal/pkg/db"
+	accessservice "gin-base/internal/service/access"
 	"gin-base/internal/web/base"
-	"gin-base/internal/web/param/access"
 	"gin-base/internal/web/router"
-	"gorm.io/gorm"
 )
 
 type SysPowerController struct {
-	base.Controller
+	*base.Controller
 }
 
 func (c *SysPowerController) InitController() {
-	// create
-	router.V1.POST("/sysPowers", c.Wrap(func(g *base.Gin) {
-		power := &model.SysPower{}
-		if ok := g.ValidateStruct(power); !ok {
-			return
-		}
 
-		power.SysRoles = access.RoleIdsToSysRoles(power.RoleIds)
-		if err := db.DB.Create(power).Error; err != nil {
-			g.Abort(err)
-			return
-		}
+	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysPower{})
 
-		g.RespSuccess(power, "创建成功")
-	}))
+	c.BuildCreateApi(&accessmodel.SysPowerBody{}, accessservice.CreatePower)
 
-	// delete
-	router.V1.DELETE("/sysPowers/:id", c.Wrap(func(g *base.Gin) {
-		id, ok := g.ValidateId()
-		if !ok {
-			return
-		}
+	c.BuildUpdateApi(&accessmodel.SysPowerBody{}, accessservice.UpdatePower)
 
-		db.DB.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Delete(&model.SysPower{ID: id}).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Exec("DELETE FROM sys_role_r_sys_power WHERE sys_power_id = ?", id).Error; err != nil {
-				return err
-			}
-
-			return nil
-		})
-
-		g.RespSuccess(nil, "删除成功")
-	}))
-
-	// update
-	router.V1.PATCH("/sysPowers/:id", c.Wrap(func(g *base.Gin) {
-
-		id, ok := g.ValidateId()
-		if !ok {
-			return
-		}
-
-		power := &model.SysPower{ID: id}
-		err := db.DB.Model(power).Take(power).Error
-		if err != nil {
-			g.Abort(err)
-			return
-		}
-
-		if ok := g.ValidateStruct(power); !ok {
-			return
-		}
-		power.ID = id
-
-		err = db.DB.Transaction(func(tx *gorm.DB) error {
-			if power.RoleIds != nil {
-				if err := tx.Debug().Model(power).Association(model.SYSROLES).Replace(access.RoleIdsToSysRoles(power.RoleIds)); err != nil {
-					return err
-				}
-			}
-
-			return tx.Save(power).Error
-
-		})
-
-		if err != nil {
-			g.Abort(err)
-			return
-		}
-
-		g.RespSuccess(power, "更新成功")
-	}))
+	c.BuildDeleteApi(accessservice.DeletePower)
 
 	router.V1.GET("/sysPowers/:id", c.Wrap(func(g *base.Gin) {
 		id, ok := g.ValidateId()
 		if !ok {
 			return
 		}
-		power := &model.SysPower{}
+		power := &accessmodel.SysPower{}
 		power.ID = id
-		if err := power.LoadById(); err != nil {
+		err := db.DB.Preload("SysMenu").Find(power, "id = ?", power.ID).Error
+		if err != nil {
 			g.Abort(err)
 			return
 		}
-		g.RespSuccess(power, "")
+		g.RespSuccess(power, "查询成功")
 	}))
 
-	router.V1.POST("/sysPowers/_search", c.Wrap(func(g *base.Gin) {
+	c.GetRouter().POST("/sysPowers/_search", c.Wrap(func(g *base.Gin) {
 		param := g.ValidateAllowField(base.NewAllowField("id", "title", "enable"))
 		if param == nil {
 			return
 		}
 
-		powers := make([]*model.SysPower, 0)
+		powers := make([]*accessmodel.SysPower, 0)
 		if err := param.Search(db.DB, "SysMenu").Find(&powers).Error; err != nil {
 			g.Abort(err)
 			return
 		}
 
-		g.RespSuccess(param.NewPagination(powers, &model.SysPower{}), "")
+		g.RespSuccess(param.NewPagination(powers, &accessmodel.SysPower{}), "")
 	}))
 }

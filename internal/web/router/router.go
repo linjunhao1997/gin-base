@@ -7,7 +7,7 @@ import (
 
 var Router *gin.Engine
 
-var V1, V2, PV1, PV2, AuthV1, AuthV2 *gin.RouterGroup
+var V1, V2, SV1, PV1, PV2, AuthV1, AuthV2 *gin.RouterGroup
 
 type Controller interface {
 	InitController()
@@ -20,6 +20,8 @@ func NewRouter() *gin.Engine {
 	V1 = root.Group("/api/v1")
 
 	V2 = root.Group("/api/v2")
+
+	SV1 = root.Group("/api/s/v1")
 
 	PV1 = root.Group("/api/p/v1")
 

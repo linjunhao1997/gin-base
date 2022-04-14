@@ -2,7 +2,7 @@ package mid
 
 import (
 	"fmt"
-	model "gin-base/internal/model/access"
+	accessmodel "gin-base/internal/model/access"
 	"gin-base/internal/web/base"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/casbin/casbin/v2"
@@ -27,7 +27,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 		Timeout:     time.Hour * 24 * 7,
 		IdentityKey: "userInfo",
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*model.SysUser); ok {
+			if v, ok := data.(*accessmodel.SysUser); ok {
 				return jwt.MapClaims{
 					"id":       v.ID,
 					"username": v.Username,
@@ -38,7 +38,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
 			id := int(claims["id"].(float64))
-			return &model.SysUser{
+			return &accessmodel.SysUser{
 				ID:       id,
 				Username: claims["username"].(string),
 			}
@@ -51,7 +51,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 			username := userInfo.Username
 			password := userInfo.Password
 
-			user := &model.SysUser{
+			user := &accessmodel.SysUser{
 				Username: username,
 				Password: password,
 			}
@@ -64,7 +64,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 			}
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if _, ok := data.(*model.SysUser); ok {
+			if _, ok := data.(*accessmodel.SysUser); ok {
 				return true
 			}
 

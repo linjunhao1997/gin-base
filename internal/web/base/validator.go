@@ -2,6 +2,7 @@ package base
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -32,7 +33,7 @@ func (g *Gin) ValidateId() (int, bool) {
 }
 
 func (g *Gin) ValidateStruct(body interface{}) bool {
-	err := g.C.ShouldBindJSON(body)
+	err := g.C.ShouldBindBodyWith(body, binding.JSON)
 	if err != nil {
 		g.RespNewError(http.StatusBadRequest, INVALID_PARAMS, err, "")
 		return false

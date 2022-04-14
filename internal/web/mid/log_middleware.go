@@ -1,14 +1,16 @@
 package mid
 
 import (
+	"fmt"
 	"gin-base/pkg/logging"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
+var logger = logging.GetLogger("Request")
+
 func LogMiddleware() gin.HandlerFunc {
-	logger := logging.GetLogger("Request")
 	return func(c *gin.Context) {
 		startTime := time.Now()
 		c.Next()
@@ -20,7 +22,7 @@ func LogMiddleware() gin.HandlerFunc {
 
 		logger.WithFields(log.Fields{
 			"status":       status,
-			"latency_time": latencyTime,
+			"latency_time": fmt.Sprintf("%v", latencyTime),
 			"client_ip":    clientIP,
 			"method":       method,
 			"uri":          uri,
