@@ -8,7 +8,7 @@ type SysMenu struct {
 	ParentId  int         `gorm:"column:parent_id" json:"parent"`
 	Desc      string      `gorm:"column:description" json:"desc"`
 	Sorts     int         `gorm:"column:sort" json:"sorts"`
-	Enable    int         `gorm:"column:enable" json:"conditions"`
+	Disabled  int         `gorm:"column:disabled" json:"disabled"`
 	SysPowers []*SysPower `json:"powers"`
 }
 
@@ -23,5 +23,5 @@ type SysMenuBody struct {
 	ParentId *int    `json:"parent"`
 	Desc     *string `json:"desc"`
 	Sorts    *int    `json:"sorts"`
-	Enable   *int    `json:"conditions"`
+	Disabled *int    `json:"disabled"`
 }

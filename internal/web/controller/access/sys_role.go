@@ -27,7 +27,7 @@ func (c *SysRoleController) InitController() {
 
 	router.V1.GET("/sysRoles", c.Wrap(func(g *base.Gin) {
 		roles := make([]*accessmodel.SysRole, 0)
-		if err := db.DB.Preload(accessmodel.SYSMENUS, "enable = 1").Preload(accessmodel.SYSAPIS, "enable = 1").Preload(accessmodel.SYSMENUS+"."+accessmodel.SYSPOWERS, "enable = 1").Find(&roles).Error; err != nil {
+		if err := db.DB.Preload(accessmodel.SYSMENUS).Preload(accessmodel.SYSAPIS).Preload(accessmodel.SYSMENUS + "." + accessmodel.SYSPOWERS).Find(&roles).Error; err != nil {
 			g.Abort(err)
 			return
 		}
@@ -36,7 +36,8 @@ func (c *SysRoleController) InitController() {
 }
 
 func (c *SysRoleController) SearchSysRoles(g *base.Gin) {
-	param := g.ValidateAllowField(base.NewAllowField("id", "name", "enable"))
+	param := g.ValidateAllowField(base.NewAllowField("id", "name", "disabled"+
+		""))
 	if param == nil {
 		return
 	}

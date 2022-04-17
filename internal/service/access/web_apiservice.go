@@ -70,7 +70,6 @@ func UpdateApi(id int, data interface{}) (interface{}, error) {
 		}).Find(&api).Error; err != nil {
 			return err
 		}
-
 		if err := model.Mapping(&api, data); err != nil {
 			return err
 		}
@@ -79,33 +78,31 @@ func UpdateApi(id int, data interface{}) (interface{}, error) {
 			return err
 		}
 
-		if api.Enable != 0 {
-			enforcer := rabc.Enforcer
-			oldPolicies := enforcer.GetFilteredPolicy(1, api.Url, api.Method)
-			newPolicies := make([][]string, 0)
-			for _, oldPolicy := range oldPolicies {
-				newPolicy := make([]string, 0)
-				for _, value := range oldPolicy {
-					newPolicy = append(newPolicy, value)
-				}
-				newPolicies = append(newPolicies, newPolicy)
+		enforcer := rabc.Enforcer
+		oldPolicies := enforcer.GetFilteredPolicy(1, api.Url, api.Method)
+		newPolicies := make([][]string, 0)
+		for _, oldPolicy := range oldPolicies {
+			newPolicy := make([]string, 0)
+			for _, value := range oldPolicy {
+				newPolicy = append(newPolicy, value)
 			}
-
-			if api.Enable < 0 {
-				for _, policy := range newPolicies {
-					policy[len(policy)-1] = "-1"
-				}
-			} else if api.Enable > 0 {
-				for _, policy := range newPolicies {
-					policy[len(policy)-1] = "1"
-				}
-			}
-			if _, err := enforcer.UpdatePolicies(oldPolicies, newPolicies); err != nil {
-				return err
-			}
-			return enforcer.SavePolicy()
+			newPolicies = append(newPolicies, newPolicy)
 		}
-		return nil
+
+		if api.Disabled <= 0 {
+			for _, policy := range newPolicies {
+				policy[len(policy)-1] = "0"
+			}
+		} else if api.Disabled > 0 {
+			for _, policy := range newPolicies {
+				policy[len(policy)-1] = "1"
+			}
+		}
+		if _, err := enforcer.UpdatePolicies(oldPolicies, newPolicies); err != nil {
+			return err
+		}
+		return enforcer.SavePolicy()
+
 	})
 	if err != nil {
 		return nil, err
@@ -115,10 +112,11 @@ func UpdateApi(id int, data interface{}) (interface{}, error) {
 }
 
 func CreateMenu(data interface{}) (interface{}, error) {
-	data = data.(*accessmodel.SysMenuBody)
+	body := data.(*accessmodel.SysMenuBody)
+
 	menu := &accessmodel.SysMenu{}
 
-	if err := model.Mapping(menu, data); err != nil {
+	if err := model.Mapping(menu, body); err != nil {
 		return menu, nil
 	}
 
@@ -253,7 +251,7 @@ func CreateRole(data interface{}) (interface{}, error) {
 			return err
 		}
 
-		if err := tx.Model(role).Preload(accessmodel.SYSAPIS, "enable = ?", 1).Find(role).Error; err != nil {
+		if err := tx.Model(role).Preload(accessmodel.SYSAPIS).Find(role).Error; err != nil {
 			return err
 		}
 
@@ -262,7 +260,7 @@ func CreateRole(data interface{}) (interface{}, error) {
 
 			rules := make([][]string, 0)
 			for _, api := range role.SysApis {
-				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Enable)})
+				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Disabled)})
 			}
 			_, err := enforcer.AddNamedPolicies("p", rules)
 			if err != nil {
@@ -325,22 +323,25 @@ func UpdateRole(id int, data interface{}) (interface{}, error) {
 		}
 
 		enforcer := rabc.Enforcer
-		_, err := enforcer.DeletePermissionsForUser(strconv.Itoa(role.ID))
-		if err != nil {
-			return err
-		}
+		if role.Disabled == 1 {
+			_, err := enforcer.DeleteRole(strconv.Itoa(role.ID))
+			if err != nil {
+				return err
+			}
+		} else {
+			rules := make([][]string, 0)
+			for _, api := range role.SysApis {
 
-		rules := make([][]string, 0)
-		for _, api := range role.SysApis {
-
-			rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Enable)})
-		}
-		_, err = enforcer.AddNamedPolicies("p", rules)
-		if err != nil {
-			return err
+				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Disabled)})
+			}
+			_, err := enforcer.AddNamedPolicies("p", rules)
+			if err != nil {
+				return err
+			}
 		}
 
 		return enforcer.SavePolicy()
+
 	})
 	if err != nil {
 		return nil, err

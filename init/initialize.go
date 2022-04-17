@@ -46,7 +46,7 @@ func Initialize() {
 	for _, route := range routes {
 		_, err := accessservice.FindApiByUrlAndMethod(route.Path, route.Method)
 		if err == gorm.ErrRecordNotFound {
-			api := &accessmodel.SysApi{Url: route.Path, Method: route.Method, Enable: 1}
+			api := &accessmodel.SysApi{Url: route.Path, Method: route.Method, Disabled: 0}
 			if err := db.DB.Save(api).Error; err != nil {
 				panic(err)
 			}

@@ -38,7 +38,7 @@ func (c *SysPowerController) InitController() {
 	}))
 
 	c.GetRouter().POST("/sysPowers/_search", c.Wrap(func(g *base.Gin) {
-		param := g.ValidateAllowField(base.NewAllowField("id", "title", "enable"))
+		param := g.ValidateAllowField(base.NewAllowField("id", "title", "disabled"))
 		if param == nil {
 			return
 		}

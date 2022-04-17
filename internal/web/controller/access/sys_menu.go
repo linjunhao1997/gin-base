@@ -31,7 +31,7 @@ func (c *SysMenuController) InitController() {
 		}
 
 		menu := &accessmodel.SysMenu{ID: id}
-		if err := db.DB.Debug().Preload(accessmodel.SYSPOWERS, "enable = 1").Find(&menu).Error; err != nil {
+		if err := db.DB.Debug().Preload(accessmodel.SYSPOWERS, "disabled != 1").Find(&menu).Error; err != nil {
 			g.Abort(err)
 			return
 		}
@@ -55,7 +55,7 @@ func (c *SysMenuController) InitController() {
 	}))
 
 	// all
-	c.GetRouter().GET("/sysMenus", c.Wrap(c.ListEnableMenus))
+	c.GetRouter().GET("/sysMenus", c.Wrap(c.ListAllMenus))
 
 	// sort
 	c.GetRouter().POST("/sysMenus/_sort", c.Wrap(func(g *base.Gin) {
@@ -77,10 +77,10 @@ func (c *SysMenuController) InitController() {
 	}))
 }
 
-func (c *SysMenuController) ListEnableMenus(g *base.Gin) {
+func (c *SysMenuController) ListAllMenus(g *base.Gin) {
 
 	menus := make([]accessmodel.SysMenu, 0)
-	if err := db.DB.Preload(accessmodel.SYSPOWERS, "enable = ?", 1).Where("enable = ?", 1).Find(&menus).Error; err != nil {
+	if err := db.DB.Preload(accessmodel.SYSPOWERS).Find(&menus).Error; err != nil {
 		g.Abort(err)
 		return
 	}

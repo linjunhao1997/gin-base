@@ -8,7 +8,7 @@ type SysRole struct {
 	ID        int         `gorm:"column:id;primary_key" json:"id"`
 	Name      string      `gorm:"column:name" json:"title"`
 	Desc      string      `gorm:"column:description" json:"desc"`
-	Enable    int         `gorm:"column:enable" json:"conditions"`
+	Disabled  int         `gorm:"column:disabled" json:"disabled"`
 	SysMenus  []*SysMenu  `gorm:"many2many:sys_role_r_sys_menu" json:"menus"`
 	SysPowers []*SysPower `gorm:"many2many:sys_role_r_sys_power" json:"powers"`
 	SysApis   []*SysApi   `gorm:"many2many:sys_role_r_sys_api" json:"apis"`
@@ -19,9 +19,9 @@ func (role *SysRole) GetResourceName() string {
 }
 
 type SysRoleBody struct {
-	Name   *string `json:"title"`
-	Desc   *string `json:"desc"`
-	Enable *int    `json:"conditions"`
+	Name     *string `json:"title"`
+	Desc     *string `json:"desc"`
+	Disabled *int    `json:"disabled"`
 
 	MenuIds  []int `json:"menuIds"`
 	PowerIds []int `json:"powerIds"`

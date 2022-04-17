@@ -6,7 +6,7 @@ type SysPower struct {
 	Code      string     `gorm:"column:code" json:"code"`
 	Tags      string     `gorm:"column:tags" json:"tags"`
 	Desc      string     `gorm:"column:description" json:"desc"`
-	Enable    int        `gorm:"column:enable" json:"conditions"`
+	Disabled  int        `gorm:"column:disabled" json:"disabled"`
 	SysMenuId int        `gorm:"column:sys_menu_id" json:"menuId"`
 	SysMenu   *SysMenu   `gorm:"foreignKey:SysMenuId" json:"menu"`
 	SysRoles  []*SysRole `gorm:"many2many:sys_role_r_sys_power" json:"roles"`
@@ -21,7 +21,7 @@ type SysPowerBody struct {
 	Code       *string `json:"code"`
 	Tags       *string `json:"tags"`
 	Desc       *string `json:"desc"`
-	Enable     *int    `json:"conditions"`
+	Disabled   *int    `json:"disabled"`
 	SysMenuId  *int    `json:"menuId"`
 	SysRoleIds []int   `json:"roleIds"`
 }

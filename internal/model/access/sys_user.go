@@ -13,7 +13,7 @@ type SysUser struct {
 	Password  string         `gorm:"column:password" json:"password"`
 	Phone     string         `gorm:"column:phone" json:"phone"`
 	Email     string         `gorm:"column:email" json:"email"`
-	Enable    int8           `gorm:"column:enable" json:"conditions"`
+	Disabled  int8           `gorm:"column:disabled" json:"disabled"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 	SysRoles  []*SysRole     `gorm:"many2many:sys_user_r_sys_role" json:"roles"`
 }
@@ -27,7 +27,7 @@ type SysUserBody struct {
 	Password *string `json:"password"`
 	Phone    *string `json:"phone"`
 	Email    *string `json:"email"`
-	Enable   *int8   `json:"conditions"`
+	Disabled *int8   `json:"disabled"`
 	RoleIds  []int   `json:"roleIds"`
 }
 

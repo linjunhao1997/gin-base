@@ -73,7 +73,7 @@ func (c *SysUserController) ResetPassword(g *base.Gin) {
 
 func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 
-	param := g.ValidateAllowField(base.NewAllowField("id", "username", "phone", "email", "enable"))
+	param := g.ValidateAllowField(base.NewAllowField("id", "username", "phone", "email", "disabled"))
 	if param == nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (c *SysUserController) GetSelf(g *base.Gin) {
 		return
 	}
 
-	if err := db.DB.Debug().Preload("SysRoles.SysMenus", "enable = 1").Preload("SysRoles.SysPowers", "enable = 1").Find(&user).Error; err != nil {
+	if err := db.DB.Debug().Preload("SysRoles.SysMenus", "disabled != 1").Preload("SysRoles.SysPowers", "disabled != 1").Find(&user).Error; err != nil {
 		g.Abort(err)
 		return
 	}
