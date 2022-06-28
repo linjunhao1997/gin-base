@@ -1,20 +1,27 @@
 syntax = "proto3";
-option go_package="../../../pb;pb";
+option go_package="./internal/pb;pb"; //.表示运行protoc下的目录
 
-package pb;
+package filesystem_pb; // proto下的包名，其他proto依赖此proto时用到
 
 service FileMetaService {
-    rpc Get(InBound) returns(OutBound) {}
+    rpc GetOne(FileMetaRequest) returns(FileMetaResponse) {}
+    rpc GetList(FileMetaRequest) returns(FileMetasResponse) {}
 }
-message InBound {
-    repeated int64 ids = 1;
+message FileMetaRequest {
+    repeated uint64 ids = 1;
+    uint64 id = 2;
 }
+
 message FileMeta {
-    int64 id = 1;
+    uint64 id = 1;
     string name = 2;
-    int64 size = 3;
+    int64  size = 3;
     string bucket = 4;
 }
-message OutBound {
-    repeated FileMeta list = 1;
+message FileMetasResponse {
+    repeated FileMeta data = 1;
+}
+
+message FileMetaResponse {
+    FileMeta data = 1;
 }

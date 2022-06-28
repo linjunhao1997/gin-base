@@ -4,7 +4,6 @@ import (
 	accessmodel "gin-base/internal/model/access"
 	model "gin-base/internal/model/common"
 	"gin-base/internal/pkg/db"
-	"gin-base/internal/pkg/rabc"
 	gutils "gin-base/internal/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -19,7 +18,7 @@ func CreateApi(data interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := db.DB.Create(api).Error; err != nil {
+	if err := db.G().Create(api).Error; err != nil {
 		return nil, err
 	}
 
@@ -27,7 +26,7 @@ func CreateApi(data interface{}) (interface{}, error) {
 }
 
 func DeleteApi(id int) error {
-	return db.DB.Transaction(func(tx *gorm.DB) error {
+	return db.G().Transaction(func(tx *gorm.DB) error {
 		api := &accessmodel.SysApi{ID: id}
 		if err := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
@@ -43,18 +42,17 @@ func DeleteApi(id int) error {
 			return err
 		}
 
-		enforcer := rabc.Enforcer
-		if _, err := enforcer.DeletePermission(api.Url, api.Method); err != nil {
+		if _, err := db.G().DeletePermission(api.Url, api.Method); err != nil {
 			return err
 		}
 
-		return enforcer.SavePolicy()
+		return db.G().SavePolicy()
 	})
 }
 
 func FindApiByUrlAndMethod(url, method string) (*accessmodel.SysApi, error) {
 	api := &accessmodel.SysApi{}
-	if err := db.DB.Take(api, "url = ? and method = ?", url, method).Error; err != nil {
+	if err := db.G().Take(api, "url = ? and method = ?", url, method).Error; err != nil {
 		return nil, err
 	}
 	return api, nil
@@ -64,7 +62,7 @@ func FindApiByUrlAndMethod(url, method string) (*accessmodel.SysApi, error) {
 func UpdateApi(id int, data interface{}) (interface{}, error) {
 	data = (data).(*accessmodel.SysApiBody)
 	api := &accessmodel.SysApi{ID: id}
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
 		}).Find(&api).Error; err != nil {
@@ -78,8 +76,7 @@ func UpdateApi(id int, data interface{}) (interface{}, error) {
 			return err
 		}
 
-		enforcer := rabc.Enforcer
-		oldPolicies := enforcer.GetFilteredPolicy(1, api.Url, api.Method)
+		oldPolicies := db.G().GetFilteredPolicy(1, api.Url, api.Method)
 		newPolicies := make([][]string, 0)
 		for _, oldPolicy := range oldPolicies {
 			newPolicy := make([]string, 0)
@@ -98,10 +95,10 @@ func UpdateApi(id int, data interface{}) (interface{}, error) {
 				policy[len(policy)-1] = "1"
 			}
 		}
-		if _, err := enforcer.UpdatePolicies(oldPolicies, newPolicies); err != nil {
+		if _, err := db.G().UpdatePolicies(oldPolicies, newPolicies); err != nil {
 			return err
 		}
-		return enforcer.SavePolicy()
+		return db.G().SavePolicy()
 
 	})
 	if err != nil {
@@ -120,7 +117,7 @@ func CreateMenu(data interface{}) (interface{}, error) {
 		return menu, nil
 	}
 
-	if err := db.DB.Create(menu).Error; err != nil {
+	if err := db.G().Create(menu).Error; err != nil {
 		return nil, err
 	}
 
@@ -130,7 +127,7 @@ func CreateMenu(data interface{}) (interface{}, error) {
 func UpdateMenu(id int, data interface{}) (interface{}, error) {
 	data = data.(*accessmodel.SysMenuBody)
 	menu := &accessmodel.SysMenu{ID: id}
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
 		}).Find(&menu).Error; err != nil {
@@ -155,7 +152,7 @@ func UpdateMenu(id int, data interface{}) (interface{}, error) {
 }
 
 func DeleteMenu(id int) error {
-	return db.DB.Transaction(func(tx *gorm.DB) error {
+	return db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Delete(&accessmodel.SysMenu{ID: id}).Error; err != nil {
 			return err
 		}
@@ -177,7 +174,7 @@ func CreatePower(data interface{}) (interface{}, error) {
 	}
 
 	power.SysRoles = accessmodel.RoleIdsToSysRoles(body.SysRoleIds)
-	if err := db.DB.Create(power).Error; err != nil {
+	if err := db.G().Create(power).Error; err != nil {
 		return nil, err
 	}
 
@@ -187,7 +184,7 @@ func CreatePower(data interface{}) (interface{}, error) {
 func UpdatePower(id int, data interface{}) (interface{}, error) {
 	body := data.(*accessmodel.SysPowerBody)
 	power := &accessmodel.SysPower{ID: id}
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
 		}).Find(&power).Error; err != nil {
@@ -215,7 +212,7 @@ func UpdatePower(id int, data interface{}) (interface{}, error) {
 }
 
 func DeletePower(id int) error {
-	return db.DB.Transaction(func(tx *gorm.DB) error {
+	return db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Delete(&accessmodel.SysPower{ID: id}).Error; err != nil {
 			return err
 		}
@@ -236,7 +233,7 @@ func CreateRole(data interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if body.MenuIds != nil {
 			role.SysMenus = accessmodel.MenuIdsToSysMenus(body.MenuIds)
 		}
@@ -256,18 +253,17 @@ func CreateRole(data interface{}) (interface{}, error) {
 		}
 
 		if len(role.SysApis) > 0 {
-			enforcer := rabc.Enforcer
 
 			rules := make([][]string, 0)
 			for _, api := range role.SysApis {
 				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Disabled)})
 			}
-			_, err := enforcer.AddNamedPolicies("p", rules)
+			_, err := db.G().AddNamedPolicies("p", rules)
 			if err != nil {
 				return err
 			}
 
-			return enforcer.SavePolicy()
+			return db.G().SavePolicy()
 		}
 
 		return nil
@@ -283,7 +279,7 @@ func CreateRole(data interface{}) (interface{}, error) {
 func UpdateRole(id int, data interface{}) (interface{}, error) {
 	body := (data).(*accessmodel.SysRoleBody)
 	role := &accessmodel.SysRole{ID: id}
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
 		}).Find(&role).Error; err != nil {
@@ -322,9 +318,8 @@ func UpdateRole(id int, data interface{}) (interface{}, error) {
 			return err
 		}
 
-		enforcer := rabc.Enforcer
 		if role.Disabled == 1 {
-			_, err := enforcer.DeleteRole(strconv.Itoa(role.ID))
+			_, err := db.G().DeleteRole(strconv.Itoa(role.ID))
 			if err != nil {
 				return err
 			}
@@ -334,13 +329,13 @@ func UpdateRole(id int, data interface{}) (interface{}, error) {
 
 				rules = append(rules, []string{strconv.Itoa(role.ID), api.Url, api.Method, strconv.Itoa(api.Disabled)})
 			}
-			_, err := enforcer.AddNamedPolicies("p", rules)
+			_, err := db.G().AddNamedPolicies("p", rules)
 			if err != nil {
 				return err
 			}
 		}
 
-		return enforcer.SavePolicy()
+		return db.G().SavePolicy()
 
 	})
 	if err != nil {
@@ -351,7 +346,7 @@ func UpdateRole(id int, data interface{}) (interface{}, error) {
 }
 
 func DeleteRole(id int) error {
-	return db.DB.Transaction(func(tx *gorm.DB) error {
+	return db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Delete(&accessmodel.SysRole{ID: id}).Error; err != nil {
 			return err
 		}
@@ -368,19 +363,18 @@ func DeleteRole(id int) error {
 			return err
 		}
 
-		enforcer := rabc.Enforcer
-		if _, err := enforcer.DeleteRole(gutils.Int2String(id)); err != nil {
+		if _, err := db.G().DeleteRole(gutils.Int2String(id)); err != nil {
 			return err
 		}
 
-		return enforcer.SavePolicy()
+		return db.G().SavePolicy()
 	})
 }
 
 func UpdateUser(id int, data interface{}) (interface{}, error) {
 	body := (data).(*accessmodel.SysUserBody)
 	user := &accessmodel.SysUser{ID: id}
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
 		}).Find(&user).Error; err != nil {
@@ -397,18 +391,17 @@ func UpdateUser(id int, data interface{}) (interface{}, error) {
 				return err
 			}
 
-			enforcer := rabc.Enforcer
 			// update g
-			_, err := enforcer.DeleteRolesForUser(gutils.Int2String(user.ID))
+			_, err := db.G().DeleteRolesForUser(gutils.Int2String(user.ID))
 			if err != nil {
 				return err
 			}
-			_, err = enforcer.AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(body.RoleIds))
+			_, err = db.G().AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(body.RoleIds))
 			if err != nil {
 				return err
 			}
 
-			return enforcer.SavePolicy()
+			return db.G().SavePolicy()
 		}
 		return nil
 	})
@@ -429,19 +422,18 @@ func CreateUser(data interface{}) (interface{}, error) {
 
 	user.SysRoles = accessmodel.RoleIdsToSysRoles(body.RoleIds)
 
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.G().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(user).Error; err != nil {
 			return err
 		}
 
 		if len(body.RoleIds) > 0 {
-			enforcer := rabc.Enforcer
-			_, err := enforcer.AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(body.RoleIds))
+			_, err := db.G().AddRolesForUser(gutils.Int2String(user.ID), gutils.Int2Strings(body.RoleIds))
 			if err != nil {
 				return err
 			}
 
-			return enforcer.SavePolicy()
+			return db.G().SavePolicy()
 		}
 
 		return nil
@@ -455,7 +447,7 @@ func CreateUser(data interface{}) (interface{}, error) {
 }
 
 func DeleteUser(id int) error {
-	return db.DB.Transaction(func(tx *gorm.DB) error {
+	return db.G().Transaction(func(tx *gorm.DB) error {
 		user := &accessmodel.SysUser{ID: id}
 
 		if err := tx.Model(user).Association(accessmodel.SYSROLES).Clear(); err != nil {
@@ -466,11 +458,10 @@ func DeleteUser(id int) error {
 			return err
 		}
 
-		enforcer := rabc.Enforcer
-		if _, err := enforcer.DeleteRolesForUser(gutils.Int2String(user.ID)); err != nil {
+		if _, err := db.G().DeleteRolesForUser(gutils.Int2String(user.ID)); err != nil {
 			return err
 		}
 
-		return enforcer.SavePolicy()
+		return db.G().SavePolicy()
 	})
 }

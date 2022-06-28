@@ -39,7 +39,7 @@ func (roles SysRoles) Ids() []int {
 }
 
 func (role *SysRole) LoadById() error {
-	err := db.DB.Model(role).Find(role, "id = ?", role.ID).Error
+	err := db.G().Model(role).Find(role, "id = ?", role.ID).Error
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (role *SysRole) LoadById() error {
 }
 
 func (role *SysRole) LoadSysApis() error {
-	err := db.DB.Joins(SYSAPIS).Find(role).Error
+	err := db.G().Joins(SYSAPIS).Find(role).Error
 	if err != nil {
 		return err
 	}

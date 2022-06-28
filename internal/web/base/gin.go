@@ -3,6 +3,7 @@ package base
 import (
 	accessmodel "gin-base/internal/model/access"
 	model "gin-base/internal/model/common"
+	"gin-base/internal/pkg/db"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -118,12 +119,12 @@ func (g *Gin) Abort(err error) {
 }
 
 type Controller struct {
-	db          *gorm.DB
+	db          *db.DB
 	routerGroup *gin.RouterGroup
 	model       model.Model
 }
 
-func NewController(db *gorm.DB, router *gin.RouterGroup, m model.Model) *Controller {
+func NewController(db *db.DB, router *gin.RouterGroup, m model.Model) *Controller {
 	return &Controller{db: db, routerGroup: router, model: m}
 }
 
@@ -202,7 +203,7 @@ func (controller *Controller) BuildSearchApi(fun func(param *SearchParam) (inter
 		s := reflect.New(slice.Type()).Interface()
 		var err error
 		if fun == nil {
-			err = param.Search(controller.db).Find(s).Error
+			err = param.Search(controller.db.GORM()).Find(s).Error
 		} else {
 			s, err = fun(param)
 		}

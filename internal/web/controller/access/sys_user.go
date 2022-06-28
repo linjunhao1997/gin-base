@@ -14,7 +14,7 @@ type SysUserController struct {
 }
 
 func (c *SysUserController) InitController() {
-	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysUser{})
+	c.Controller = base.NewController(db.G(), router.V1, &accessmodel.SysUser{})
 
 	c.GetRouter().GET("/sysUsers/:id", c.Wrap(c.GetSysUser))
 
@@ -79,7 +79,7 @@ func (c *SysUserController) SearchSysUsers(g *base.Gin) {
 	}
 
 	users := make(accessmodel.SysUsers, 0)
-	if err := param.Search(db.DB, accessmodel.SYSROLES).Find(&users).Error; err != nil {
+	if err := param.Search(db.G().GORM(), accessmodel.SYSROLES).Find(&users).Error; err != nil {
 		g.Abort(err)
 		return
 	}
@@ -95,7 +95,7 @@ func (c *SysUserController) GetSelf(g *base.Gin) {
 		return
 	}
 
-	if err := db.DB.Debug().Preload("SysRoles.SysMenus", "disabled != 1").Preload("SysRoles.SysPowers", "disabled != 1").Find(&user).Error; err != nil {
+	if err := db.G().Debug().Preload("SysRoles.SysMenus", "disabled != 1").Preload("SysRoles.SysPowers", "disabled != 1").Find(&user).Error; err != nil {
 		g.Abort(err)
 		return
 	}

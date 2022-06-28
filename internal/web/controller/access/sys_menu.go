@@ -15,7 +15,7 @@ type SysMenuController struct {
 
 func (c *SysMenuController) InitController() {
 
-	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysMenu{})
+	c.Controller = base.NewController(db.G(), router.V1, &accessmodel.SysMenu{})
 
 	c.BuildCreateApi(&accessmodel.SysMenuBody{}, accessservice.CreateMenu)
 
@@ -31,7 +31,7 @@ func (c *SysMenuController) InitController() {
 		}
 
 		menu := &accessmodel.SysMenu{ID: id}
-		if err := db.DB.Debug().Preload(accessmodel.SYSPOWERS, "disabled != 1").Find(&menu).Error; err != nil {
+		if err := db.G().Debug().Preload(accessmodel.SYSPOWERS, "disabled != 1").Find(&menu).Error; err != nil {
 			g.Abort(err)
 			return
 		}
@@ -46,7 +46,7 @@ func (c *SysMenuController) InitController() {
 		}
 
 		menu := &accessmodel.SysMenu{ID: id}
-		if err := db.DB.Preload(accessmodel.SYSPOWERS + "." + accessmodel.SYSROLES).Find(&menu).Error; err != nil {
+		if err := db.G().Preload(accessmodel.SYSPOWERS + "." + accessmodel.SYSROLES).Find(&menu).Error; err != nil {
 			g.Abort(err)
 			return
 		}
@@ -64,14 +64,16 @@ func (c *SysMenuController) InitController() {
 			g.Abort(err)
 			return
 		}
-		db.DB.Transaction(func(tx *gorm.DB) error {
+		if err := db.G().Transaction(func(tx *gorm.DB) error {
 			for i := range ids {
 				if err := tx.Model(accessmodel.SysMenu{}).Where("id = ?", ids[i]).Update("sort", i).Error; err != nil {
 					return err
 				}
 			}
 			return nil
-		})
+		}); err != nil {
+			return
+		}
 
 		g.RespSuccess(nil, "操作成功")
 	}))
@@ -80,7 +82,7 @@ func (c *SysMenuController) InitController() {
 func (c *SysMenuController) ListAllMenus(g *base.Gin) {
 
 	menus := make([]accessmodel.SysMenu, 0)
-	if err := db.DB.Preload(accessmodel.SYSPOWERS).Find(&menus).Error; err != nil {
+	if err := db.G().Preload(accessmodel.SYSPOWERS).Find(&menus).Error; err != nil {
 		g.Abort(err)
 		return
 	}

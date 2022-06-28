@@ -13,7 +13,7 @@ type SysApiController struct {
 }
 
 func (c *SysApiController) InitController() {
-	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysApi{})
+	c.Controller = base.NewController(db.G(), router.V1, &accessmodel.SysApi{})
 
 	c.BuildCreateApi(&accessmodel.SysApiBody{}, accessservice.CreateApi)
 
@@ -28,7 +28,7 @@ func (c *SysApiController) InitController() {
 	// all
 	c.GetRouter().GET("/sysApis", c.Wrap(func(g *base.Gin) {
 		apis := make([]*accessmodel.SysApi, 0)
-		if err := db.DB.Find(&apis).Error; err != nil {
+		if err := db.G().Find(&apis).Error; err != nil {
 			g.Abort(err)
 			return
 		}

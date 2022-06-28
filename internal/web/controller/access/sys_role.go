@@ -13,7 +13,7 @@ type SysRoleController struct {
 }
 
 func (c *SysRoleController) InitController() {
-	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysRole{})
+	c.Controller = base.NewController(db.G(), router.V1, &accessmodel.SysRole{})
 
 	c.BuildCreateApi(&accessmodel.SysRoleBody{}, accessservice.CreateRole)
 
@@ -27,7 +27,7 @@ func (c *SysRoleController) InitController() {
 
 	router.V1.GET("/sysRoles", c.Wrap(func(g *base.Gin) {
 		roles := make([]*accessmodel.SysRole, 0)
-		if err := db.DB.Preload(accessmodel.SYSMENUS).Preload(accessmodel.SYSAPIS).Preload(accessmodel.SYSMENUS + "." + accessmodel.SYSPOWERS).Find(&roles).Error; err != nil {
+		if err := db.G().Preload(accessmodel.SYSMENUS).Preload(accessmodel.SYSAPIS).Preload(accessmodel.SYSMENUS + "." + accessmodel.SYSPOWERS).Find(&roles).Error; err != nil {
 			g.Abort(err)
 			return
 		}
@@ -43,7 +43,7 @@ func (c *SysRoleController) SearchSysRoles(g *base.Gin) {
 	}
 
 	roles := make([]*accessmodel.SysRole, 0)
-	if err := param.Search(db.DB, accessmodel.SYSMENUS+"."+accessmodel.SYSPOWERS, accessmodel.SYSPOWERS, accessmodel.SYSAPIS).Find(&roles).Error; err != nil {
+	if err := param.Search(db.G().GORM(), accessmodel.SYSMENUS+"."+accessmodel.SYSPOWERS, accessmodel.SYSPOWERS, accessmodel.SYSAPIS).Find(&roles).Error; err != nil {
 		g.Abort(err)
 		return
 	}
@@ -59,7 +59,7 @@ func (c *SysRoleController) GetSysRole(g *base.Gin) {
 	}
 
 	var role accessmodel.SysRole
-	if err := db.DB.Where("id = ?", id).Take(&role).Error; err != nil {
+	if err := db.G().Where("id = ?", id).Take(&role).Error; err != nil {
 		g.Abort(err)
 		return
 	}

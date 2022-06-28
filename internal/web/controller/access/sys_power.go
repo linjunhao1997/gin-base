@@ -14,7 +14,7 @@ type SysPowerController struct {
 
 func (c *SysPowerController) InitController() {
 
-	c.Controller = base.NewController(db.DB, router.V1, &accessmodel.SysPower{})
+	c.Controller = base.NewController(db.G(), router.V1, &accessmodel.SysPower{})
 
 	c.BuildCreateApi(&accessmodel.SysPowerBody{}, accessservice.CreatePower)
 
@@ -29,7 +29,7 @@ func (c *SysPowerController) InitController() {
 		}
 		power := &accessmodel.SysPower{}
 		power.ID = id
-		err := db.DB.Preload("SysMenu").Find(power, "id = ?", power.ID).Error
+		err := db.G().Preload("SysMenu").Find(power, "id = ?", power.ID).Error
 		if err != nil {
 			g.Abort(err)
 			return
@@ -44,7 +44,7 @@ func (c *SysPowerController) InitController() {
 		}
 
 		powers := make([]*accessmodel.SysPower, 0)
-		if err := param.Search(db.DB, "SysMenu").Find(&powers).Error; err != nil {
+		if err := param.Search(db.G().GORM(), "SysMenu").Find(&powers).Error; err != nil {
 			g.Abort(err)
 			return
 		}

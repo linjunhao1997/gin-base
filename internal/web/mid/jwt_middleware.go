@@ -3,11 +3,10 @@ package mid
 import (
 	"fmt"
 	accessmodel "gin-base/internal/model/access"
+	"gin-base/internal/pkg/db"
 	"gin-base/internal/web/base"
 	jwt "github.com/appleboy/gin-jwt/v2"
-	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"log"
 	"strconv"
 	"time"
@@ -18,9 +17,7 @@ type UserInfo struct {
 	Password string `json:"password"`
 }
 
-var JwtMiddleware *jwt.GinJWTMiddleware
-
-func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
+func NewJwtMiddleware() *jwt.GinJWTMiddleware {
 	middleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "auth",
 		Key:         []byte("2021"),
@@ -56,7 +53,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 				Password: password,
 			}
 
-			err := db.Model(user).Where("username = ? and password = ?", user.Username, user.Password).Take(&user).Error
+			err := db.G().Model(user).Where("username = ? and password = ?", user.Username, user.Password).Take(&user).Error
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			} else {
@@ -109,7 +106,7 @@ func NewJwtMiddleware(db *gorm.DB) *jwt.GinJWTMiddleware {
 	return middleware
 }
 
-func CheckAuthByEnforcer(enforcer *casbin.Enforcer) gin.HandlerFunc {
+func NewAccessGinHandlerFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		g := base.Gin{C: c}
 		sysUser := g.EnsureSysUser()
@@ -117,7 +114,7 @@ func CheckAuthByEnforcer(enforcer *casbin.Enforcer) gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		ok, err := enforcer.Enforce(strconv.Itoa(sysUser.ID), c.Request.RequestURI, c.Request.Method)
+		ok, err := db.G().Enforce(strconv.Itoa(sysUser.ID), c.Request.RequestURI, c.Request.Method)
 		if err != nil {
 			g.Abort(err)
 			return
